@@ -47,6 +47,7 @@ before_deploy:
 
 # 部署
 deploy:
+  # 后面可以考虑为不同的分支设置不同的部署策略，即使用环境变量的方式动态修改kubernetes/*.yaml中的内容
   provider: script
   script: scp ./kubernetes/*.yaml root@123.57.73.97:~/apsh/ && ssh root@123.57.73.97 "kubectl apply -f ~/apsh"
   on:
@@ -60,7 +61,9 @@ after_script:
 
 branches:
   only:
+    - dev
     - ci
+    - master
 
 notifications:
   email:
