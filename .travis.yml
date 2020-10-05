@@ -67,8 +67,8 @@ notifications:
     recipients:
       - 876684433@qq.com
       - chph13420146901@gmail.com
-      on_success: always # default: change
-      on_failure: always # default: always
+    on_success: always # default: change
+    on_failure: always # default: always
 
 # 设定环境变量
 env:
