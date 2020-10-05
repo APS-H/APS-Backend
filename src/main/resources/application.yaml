@@ -3,4 +3,8 @@ spring:
     url: jdbc:mysql://${MYSQL_HOST:mysql-service}:3306/apsh
     username: root
     password: 123456
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
