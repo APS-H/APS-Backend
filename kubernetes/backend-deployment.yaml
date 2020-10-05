@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: registry.cn-beijing.aliyuncs.com/chenpeihong/apsh-backend:v1-alpha
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: backend
