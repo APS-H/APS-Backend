@@ -46,7 +46,7 @@ before_deploy:
 # 部署
 deploy:
   - scp ./kubernetes/*.yaml root@123.57.73.97:~/apsh/
-  - ssh root@123.57.73.97 "kubectl apply -f ~/apsh/*"
+  - ssh root@123.57.73.97 "kubectl apply -f ~/apsh"
 
 # 部署完成后执行
 after_deploy:
