@@ -29,8 +29,10 @@ script:
 #  - echo -n 'YXBzaC1wZWlob25nY2hlbg==' | base64 --decode | docker login --username=876684433@qq.com --password-stdin registry.cn-beijing.aliyuncs.com
 #  - docker push registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND
 #  - docker exit
+  - echo -n 'Q2hwaDExNDk3NTQ4Mjk=' | base64 --decode | docker login --username=chph --password-stdin
   - docker build -t chph/$APSH_BACKEND .
   - docker push chph/$APSH_BACKEND
+  - docker exit
 
 # 构建脚本执行成功后执行
 after_success:
