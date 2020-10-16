@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderVo {
     String orderId;
-    String stockNumber;
+    String stockId;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
     Date dayOfDelivery;
     Integer state;

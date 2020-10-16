@@ -24,7 +24,7 @@ public class ResourceController {
     }
 
     @GetMapping(value = "/use/all")
-    public List<ResourceUseVo> getMethodName(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
+    public List<ResourceUseVo> getResourceUse(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
             @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
         // TODO:
         return null;

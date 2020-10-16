@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResourceUseVo {
+    String resourceId;
     String resourceName;
-    List<UseTimeInResourceUseVo> usedTimeList;
+    Integer resourceType;
+    List<ProductInResourceUseVo> usedTimeList;
 }
