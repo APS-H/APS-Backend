@@ -1,1 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:mysql-service}:3306/apsh-test
+    username: root
+    password: 123456
 

@@ -21,10 +21,11 @@ install:
 
 # 执行构建脚本前执行
 before_script:
+  - mvn test -P test
 
 # 执行构建脚本
 script:
-  - mvn clean install package -DskipTests=true
+  - mvn -B -DskipTests clean install package -P prod
   #  - docker build -t registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND .
   #  - echo -n 'YXBzaC1wZWlob25nY2hlbg==' | base64 --decode | docker login --username=876684433@qq.com --password-stdin registry.cn-beijing.aliyuncs.com
   #  - docker push registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND
