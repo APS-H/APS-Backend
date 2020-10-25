@@ -1,9 +1,11 @@
 package apsh.backend.controller;
 
+import apsh.backend.service.HumanService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import apsh.backend.vo.ManpowerVo;
+import apsh.backend.vo.HumanVo;
 
 import java.util.List;
 
@@ -15,14 +17,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-
-
-
 @RestController
-@RequestMapping(value = "/manpower")
-public class ManpowerController {
+@RequestMapping(value = "/hr")
+public class HumanController {
+
+    private final HumanService humanService;
+
+    @Autowired
+    public HumanController(HumanService humanService) {
+        this.humanService = humanService;
+    }
+
     @PostMapping()
-    public void postManpower(@RequestBody ManpowerVo vo) {
+    public void postManpower(@RequestBody HumanVo vo) {
         // TODO:
     }
 
@@ -32,12 +39,12 @@ public class ManpowerController {
     }
 
     @PutMapping(value="/{id}")
-    public void putManpower(@PathVariable String id, @RequestBody ManpowerVo vo) {
+    public void putManpower(@PathVariable String id, @RequestBody HumanVo vo) {
         //TODO:
     }
 
     @GetMapping(value = "/all")
-    public List<ManpowerVo> getManpower(@RequestParam Integer pageSize, @RequestParam Integer pageNum) {
+    public List<HumanVo> getManpower(@RequestParam Integer pageSize, @RequestParam Integer pageNum) {
         // TODO:
         return null;
     }

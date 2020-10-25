@@ -9,11 +9,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ManpowerVo {
-    String manpowerId;
+public class EquipmentVo {
+    String deviceId;
     String name;
-    String teamName;
-    Integer count;
     Integer shift;
     List<Integer> workDay;
 }

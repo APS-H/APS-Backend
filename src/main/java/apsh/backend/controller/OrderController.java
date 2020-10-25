@@ -1,5 +1,7 @@
 package apsh.backend.controller;
 
+import apsh.backend.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +23,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 @RequestMapping(value = "/order")
 public class OrderController {
+
+    private final OrderService orderService;
+
+    @Autowired
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
     @PostMapping()
     public void postOrder(@RequestBody OrderVo vo) {
         // TODO:
@@ -44,16 +54,17 @@ public class OrderController {
 
     /**
      * 获取订单进度
+     *
      * @param date
      * @param pageSize
      * @param pageNum
      * @return
      */
-    @GetMapping(value="/progress/all")
+    @GetMapping(value = "/progress/all")
     public OrderProgressVo getOrderProgress(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
-    @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
+                                            @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
         // TODO:
         return null;
     }
-    
+
 }
