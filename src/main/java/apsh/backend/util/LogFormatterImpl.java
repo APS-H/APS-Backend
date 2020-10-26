@@ -1,6 +1,5 @@
 package apsh.backend.util;
 
-import apsh.backend.vo.TimeVo;
 import org.slf4j.Logger;
 
 public class LogFormatterImpl implements LogFormatter {
@@ -39,5 +38,10 @@ public class LogFormatterImpl implements LogFormatter {
     @Override
     public void errorControllerResponse() {
 
+    }
+
+    @Override
+    public void errorService(String method, Object parameters, String errMsg) {
+        logger.error("method=" + method + ", parameters=" + parameters + ", errMsg: " + errMsg);
     }
 }

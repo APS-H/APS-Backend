@@ -1,5 +1,9 @@
 package apsh.backend.util;
 
+import apsh.backend.dto.SystemTime;
+
+import java.io.IOException;
+
 public interface LogFormatter {
 
     void infoControllerRequest(String method, String url, Object vo);
@@ -13,5 +17,7 @@ public interface LogFormatter {
     void warnControllerResponse();
 
     void errorControllerResponse();
+
+    void errorService(String method, Object parameters, String errMsg);
 
 }
