@@ -3,7 +3,9 @@ package apsh.backend.serviceImpl;
 import apsh.backend.repository.HumanRepository;
 import apsh.backend.service.HumanService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class HumanServiceImpl implements HumanService {
 
     private final HumanRepository humanRepository;

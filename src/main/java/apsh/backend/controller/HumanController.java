@@ -1,6 +1,9 @@
 package apsh.backend.controller;
 
 import apsh.backend.service.HumanService;
+import apsh.backend.util.LogFormatter;
+import apsh.backend.util.LogFormatterImpl;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,9 +26,12 @@ public class HumanController {
 
     private final HumanService humanService;
 
+    private final LogFormatter logger;
+
     @Autowired
     public HumanController(HumanService humanService) {
         this.humanService = humanService;
+        this.logger = new LogFormatterImpl(LoggerFactory.getLogger(HumanController.class));
     }
 
     @PostMapping()

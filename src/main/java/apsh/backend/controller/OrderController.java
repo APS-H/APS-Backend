@@ -1,6 +1,9 @@
 package apsh.backend.controller;
 
 import apsh.backend.service.OrderService;
+import apsh.backend.util.LogFormatter;
+import apsh.backend.util.LogFormatterImpl;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,9 +29,12 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    private final LogFormatter logger;
+
     @Autowired
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
+        this.logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderController.class));
     }
 
     @PostMapping()

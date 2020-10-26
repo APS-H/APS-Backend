@@ -1,6 +1,9 @@
 package apsh.backend.controller;
 
 import apsh.backend.service.EquipmentService;
+import apsh.backend.util.LogFormatter;
+import apsh.backend.util.LogFormatterImpl;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,9 +27,12 @@ public class EquipmentController {
 
     private final EquipmentService equipmentService;
 
+    private final LogFormatter logger;
+
     @Autowired
     public EquipmentController(EquipmentService equipmentService) {
         this.equipmentService = equipmentService;
+        this.logger = new LogFormatterImpl(LoggerFactory.getLogger(EquipmentController.class));
     }
 
     @PostMapping()
@@ -39,7 +45,7 @@ public class EquipmentController {
         // TODO:
     }
 
-    @PutMapping(value="/{id}")
+    @PutMapping(value = "/{id}")
     public void putDevice(@PathVariable String id, @RequestBody EquipmentVo vo) {
         // TODO:
     }
@@ -49,5 +55,5 @@ public class EquipmentController {
         // TODO:
         return null;
     }
-    
+
 }
