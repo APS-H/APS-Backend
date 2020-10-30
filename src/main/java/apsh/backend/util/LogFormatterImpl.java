@@ -26,8 +26,8 @@ public class LogFormatterImpl implements LogFormatter {
     }
 
     @Override
-    public void infoControllerResponse() {
-
+    public void infoControllerResponse(String method, String url, Object vo) {
+        logger.info("response: method=" + method + ", url=" + url + ", results=" + vo);
     }
 
     @Override
@@ -43,5 +43,10 @@ public class LogFormatterImpl implements LogFormatter {
     @Override
     public void errorService(String method, Object parameters, String errMsg) {
         logger.error("method=" + method + ", parameters=" + parameters + ", errMsg: " + errMsg);
+    }
+
+    @Override
+    public void infoService(String method, Object parameters) {
+        logger.info("method=" + method + ", parameters=" + parameters);
     }
 }

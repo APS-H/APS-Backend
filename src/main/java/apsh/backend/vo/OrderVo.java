@@ -2,6 +2,8 @@ package apsh.backend.vo;
 
 import java.util.Date;
 
+import apsh.backend.dto.OrderDto;
+import apsh.backend.po.Order;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
@@ -20,4 +22,12 @@ public class OrderVo {
     Date dayOfDelivery;
     Integer state;
     Integer orderAmount;
+
+    public OrderVo(OrderDto orderDto) {
+        this.orderId = String.valueOf(orderDto.getOrderId());
+        this.stockId = String.valueOf(orderDto.getProductId());
+        this.dayOfDelivery = orderDto.getDayOfDelivery();
+        this.state = orderDto.getState().value();
+        this.orderAmount = orderDto.getProductCount();
+    }
 }

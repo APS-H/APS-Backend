@@ -1,5 +1,6 @@
 package apsh.backend.controller;
 
+import apsh.backend.dto.OrderDto;
 import apsh.backend.service.OrderService;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
@@ -14,6 +15,7 @@ import apsh.backend.vo.OrderVo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,23 +41,29 @@ public class OrderController {
 
     @PostMapping()
     public void postOrder(@RequestBody OrderVo vo) {
-        // TODO:
+        logger.infoControllerRequest("DELETE", "/order", vo);
+        orderService.update(new OrderDto(vo));
     }
 
     @DeleteMapping(value = "/{id}")
     public void deleteOrder(@PathVariable String id) {
-        // TODO:
+        logger.infoControllerRequest("DELETE", "/order/" + id, new Object());
+        orderService.delete(id);
     }
 
     @PutMapping(value = "/{id}")
     public void putOrder(@PathVariable String id, @RequestBody OrderVo vo) {
-        // TODO:
+        logger.infoControllerRequest("PUT", "/order/" + id, vo);
+        orderService.add(new OrderDto(vo));
     }
 
     @GetMapping(value = "/all")
     public List<OrderVo> getOrder(@RequestParam Integer pageSize, @RequestParam Integer pageNum) {
-        // TODO:
-        return null;
+        logger.infoControllerRequest("GET", "/order/all", "pageSize=" + pageSize + ", pageNum=" + pageNum);
+        List<OrderVo> orderVos = orderService.getAll(pageSize, pageNum).parallelStream()
+                .map(OrderVo::new).collect(Collectors.toList());
+        logger.infoControllerResponse("GET", "/order/all", orderVos);
+        return orderVos;
     }
 
     /**
