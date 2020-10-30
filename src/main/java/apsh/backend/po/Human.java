@@ -1,11 +1,15 @@
 package apsh.backend.po;
 
+import apsh.backend.vo.ProductInResourceUseVo;
+import apsh.backend.vo.ResourceUseVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -34,4 +38,9 @@ public class Human {
     @Column(name = "is_deleted")
     private Integer isDeleted;
 
+    public ResourceUseVo toResourceUseVo(){
+        List<ProductInResourceUseVo> usedTimeList = new ArrayList<ProductInResourceUseVo>();
+        ResourceUseVo RUVO = new ResourceUseVo(id, groupName, 0, usedTimeList);
+        return RUVO;
+    }
 }
