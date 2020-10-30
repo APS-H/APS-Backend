@@ -36,9 +36,5 @@ public class Equipment {
     private Integer isDeleted;
 
 
-    public ResourceUseVo toResourceUseVo() {
-        List<ProductInResourceUseVo> usedTimeList = new ArrayList<ProductInResourceUseVo>();
-        ResourceUseVo RUVO = new ResourceUseVo(id, name, 1, usedTimeList);
-        return RUVO;
-    }
+    
 }

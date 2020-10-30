@@ -1,5 +1,7 @@
 package apsh.backend.serviceImpl;
 
+import apsh.backend.dto.OrderDto;
+import apsh.backend.dto.ResourceUseDto;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.repository.EquipmentRepository;
@@ -52,11 +54,17 @@ public class ResourceServiceImpl implements ResourceService {
 
 
         //转换为resource类型
-        List<ResourceUseVo> RUList0 = EList.stream().map(Equipment::toResourceUseVo).collect(Collectors.toList());
-        List<ResourceUseVo> RUList1 = HList.stream().map(Human::toResourceUseVo).collect(Collectors.toList());
+        List<ResourceUseDto> RUList0 = EList.stream().map(o -> {
+            ResourceUseDto resourceUseDto = new ResourceUseDto(o);
+            return resourceUseDto;
+        }).collect(Collectors.toList());
+        List<ResourceUseDto> RUList1 = HList.stream().map(o -> {
+            ResourceUseDto resourceUseDto = new ResourceUseDto(o);
+            return resourceUseDto;
+        }).collect(Collectors.toList());
 
         //合并两个list
-        List<ResourceUseVo> RUList = new ArrayList<ResourceUseVo>();
+        List<ResourceUseDto> RUList = new ArrayList<ResourceUseDto>();
         RUList.addAll(RUList0);
         RUList.addAll(RUList1);
 

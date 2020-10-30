@@ -38,9 +38,5 @@ public class Human {
     @Column(name = "is_deleted")
     private Integer isDeleted;
 
-    public ResourceUseVo toResourceUseVo(){
-        List<ProductInResourceUseVo> usedTimeList = new ArrayList<ProductInResourceUseVo>();
-        ResourceUseVo RUVO = new ResourceUseVo(id, groupName, 0, usedTimeList);
-        return RUVO;
-    }
+
 }
