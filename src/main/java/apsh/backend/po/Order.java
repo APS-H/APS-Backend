@@ -1,5 +1,6 @@
 package apsh.backend.po;
 
+import apsh.backend.dto.OrderDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,12 +16,15 @@ import java.sql.Date;
 @Entity(name = "orders")
 public class Order {
 
+    public static final int NOT_DELETED = 0;
+    public static final int DELETED = 1;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
     @Column(name = "product_id")
-    private String productId;
+    private Integer productId;
 
     @Column(name = "delivery_date")
     private Date deliveryDate;
@@ -31,4 +35,9 @@ public class Order {
     @Column(name = "is_deleted")
     private Integer isDeleted;
 
+    public Order(OrderDto order) {
+        this.productId = order.getProductId();
+        this.deliveryDate = new Date(order.getDayOfDelivery().getTime());
+        this.productCount = order.getProductCount();
+    }
 }
