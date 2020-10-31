@@ -90,6 +90,11 @@ databaseChangeLog:
                     unique: true
                     nullable: false
               - column:
+                  name: count
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
                   name: weekly_schedule
                   type: varchar(20)
                   constraints:

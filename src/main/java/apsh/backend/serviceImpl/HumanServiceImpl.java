@@ -22,7 +22,7 @@ public class HumanServiceImpl implements HumanService {
 
     private final HumanRepository humanRepository;
     private final LegacySystemService legacySystemService;
-    private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderServiceImpl.class));
+    private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(HumanServiceImpl.class));
 
     @Autowired
     public HumanServiceImpl(HumanRepository humanRepository, LegacySystemService legacySystemService) {
