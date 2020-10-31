@@ -1,11 +1,11 @@
 package apsh.backend.serviceImpl;
 
-import apsh.backend.dto.OrderDto;
-import apsh.backend.dto.ResourceUseDto;
+import apsh.backend.dto.ResourceDto;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.repository.EquipmentRepository;
 import apsh.backend.repository.HumanRepository;
+import apsh.backend.repository.ScheduleRepository;
 import apsh.backend.service.ResourceService;
 import apsh.backend.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,40 +30,48 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
-    public ResourceLoadVo getResourceLoad(Date date) {
-        List<ResourceUseVo> RUList=getResourceUse(date);
-        List<ResourceInResourceLoadVo> resourceLoadlist=RUList.stream().map(ResourceUseVo::getLoad).collect(Collectors.toList());
-        int EquipmentAmount=equipmentRepository.findAll().size();
-        Double deviceLoad=0.0;
-        Double manpowerLoad=0.0;
-        for(int i=0;i<EquipmentAmount;i++){
-            deviceLoad=deviceLoad+RUList.get(i).getLoad()/EquipmentAmount;
+    public ResourceLoadVo getResourceLoad(Date date, Integer pageSize, Integer pageNum) {
+        List<ResourceDto> RUList = getAllResourceUse(date);
+        List<ResourceInResourceLoadVo> resourceLoadlist = RUList.stream().map(ResourceDto::getResourceLoad).collect(Collectors.toList());
+        int EquipmentAmount = equipmentRepository.findAll().size();
+        Double deviceLoad = 0.0;
+        Double manpowerLoad = 0.0;
+        for (int i = 0; i < EquipmentAmount; i++) {
+            deviceLoad = deviceLoad + RUList.get(i).getLoad() / EquipmentAmount;
         }
-        for(int i=EquipmentAmount;i<RUList.size();i++){
-            manpowerLoad=manpowerLoad+RUList.get(i).getLoad()/(RUList.size()-EquipmentAmount);
+        for (int i = EquipmentAmount; i < RUList.size(); i++) {
+            manpowerLoad = manpowerLoad + RUList.get(i).getLoad() / (RUList.size() - EquipmentAmount);
         }
-        ResourceLoadVo result=new ResourceLoadVo(deviceLoad,manpowerLoad,resourceLoadlist);
+        ResourceLoadVo result = new ResourceLoadVo(deviceLoad, manpowerLoad, resourceLoadlist);
         return result;
     }
 
     @Override
-    public List<ResourceUseVo> getResourceUse(Date date) {
+    public List<ResourceDto> getResourceUse(Date date, Integer pageSize, Integer pageNum) {
+        List<ResourceDto> RUList=getAllResourceUse(date);
+        int start = pageSize * (pageNum - 1);
+        int end = pageSize * pageNum;
+        return RUList.subList(start, end);
+    }
+
+
+    private List<ResourceDto> getAllResourceUse(Date date) {
         List<Equipment> EList = equipmentRepository.findAll();
         List<Human> HList = humanRepository.findAll();
 
 
         //转换为resource类型
-        List<ResourceUseDto> RUList0 = EList.stream().map(o -> {
-            ResourceUseDto resourceUseDto = new ResourceUseDto(o);
+        List<ResourceDto> RUList0 = EList.stream().map(o -> {
+            ResourceDto resourceUseDto = new ResourceDto(o);
             return resourceUseDto;
-        }).collect(Collectors.toList());
-        List<ResourceUseDto> RUList1 = HList.stream().map(o -> {
-            ResourceUseDto resourceUseDto = new ResourceUseDto(o);
+        }).sorted(((o1, o2) -> o1.getId() < o2.getId() ? 1 : 0)).collect(Collectors.toList());
+        List<ResourceDto> RUList1 = HList.stream().map(o -> {
+            ResourceDto resourceUseDto = new ResourceDto(o);
             return resourceUseDto;
-        }).collect(Collectors.toList());
+        }).sorted(((o1, o2) -> o1.getId() < o2.getId() ? 1 : 0)).collect(Collectors.toList());
 
         //合并两个list
-        List<ResourceUseDto> RUList = new ArrayList<ResourceUseDto>();
+        List<ResourceDto> RUList = new ArrayList<ResourceDto>();
         RUList.addAll(RUList0);
         RUList.addAll(RUList1);
 
@@ -88,7 +95,6 @@ public class ResourceServiceImpl implements ResourceService {
 //            }
 //        }
 //
-
         return RUList;
     }
 }

@@ -1,5 +1,6 @@
 package apsh.backend.controller;
 
+import apsh.backend.dto.ResourceDto;
 import apsh.backend.service.ResourceService;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
@@ -13,6 +14,7 @@ import apsh.backend.vo.ResourceUseVo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,15 +35,21 @@ public class ResourceController {
     @GetMapping(value = "/load/all")
     public ResourceLoadVo getResourceLoad(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
             @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
-        // TODO:
-        return null;
+        logger.infoControllerRequest("GET", "/load/all", "pageSize=" + pageSize + ", pageNum=" + pageNum);
+        ResourceLoadVo resourceLoadVo=resourceService.getResourceLoad(date,pageSize,pageNum);
+        logger.infoControllerResponse("GET", "/load/all", resourceLoadVo);
+        return resourceLoadVo;
     }
 
     @GetMapping(value = "/use/all")
     public List<ResourceUseVo> getResourceUse(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
             @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
-        // TODO:
-        return null;
+        logger.infoControllerRequest("GET", "/use/all", "pageSize=" + pageSize + ", pageNum=" + pageNum);
+        List<ResourceUseVo> resourceUseVos = resourceService.getResourceUse(date,pageSize,pageNum).stream()
+                .map(ResourceDto::getResourceUseVo).collect(Collectors.toList());
+        logger.infoControllerResponse("GET", "/use/all", resourceUseVos);
+
+        return resourceUseVos;
     }
 
 }

@@ -36,5 +36,5 @@ public class Equipment {
     private Integer isDeleted;
 
 
-    
+
 }
