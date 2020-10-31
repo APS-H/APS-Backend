@@ -3,3 +3,8 @@ spring:
     url: jdbc:mysql://${MYSQL_HOST:mysql-service}:3306/apsh?createDatabaseIfNotExist=true
     username: root
     password: 123456
+
+optaplanner:
+  solver:
+    termination:
+      spent-limit: 30s
