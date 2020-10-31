@@ -41,7 +41,7 @@ public class OrderController {
 
     @PostMapping()
     public void postOrder(@RequestBody OrderVo vo) {
-        logger.infoControllerRequest("DELETE", "/order", vo);
+        logger.infoControllerRequest("POST", "/order", vo);
         orderService.update(new OrderDto(vo));
     }
 

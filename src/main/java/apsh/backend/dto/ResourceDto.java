@@ -53,5 +53,8 @@ public class ResourceDto {
     public ResourceInResourceLoadVo getResourceLoad(){
         return null;
     }
+    public double getLoad(){
+        return 0.0;
+    }
 
 }

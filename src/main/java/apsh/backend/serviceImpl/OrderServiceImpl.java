@@ -5,24 +5,18 @@ import apsh.backend.po.Order;
 import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.LegacySystemService;
 import apsh.backend.service.OrderService;
-<<<<<<< HEAD
-import apsh.backend.vo.OrderProgressVo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.Date;
-
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
+import apsh.backend.vo.OrderProgressVo;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -73,6 +67,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public void add(OrderDto order) {
+        logger.infoService("add", order);
         Order o = new Order(order);
         o.setIsDeleted(Order.NOT_DELETED);
         this.orderRepository.saveAndFlush(o);
@@ -96,13 +91,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void delete(String id) {
-        logger.infoService("update", id);
+        logger.infoService("delete", id);
         // 订单编号不存在，直接添加订单记录，删除标志置为1
         // 否则，将订单编号对应的订单记录的删除标志置1
         Optional<Order> orderOptional = this.orderRepository.findById(Integer.parseInt(id));
         Order o = orderOptional.orElseGet(Order::new);
         o.setIsDeleted(Order.DELETED);
         this.orderRepository.saveAndFlush(o);
-
     }
 }
