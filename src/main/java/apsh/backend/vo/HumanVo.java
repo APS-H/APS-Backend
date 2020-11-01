@@ -26,7 +26,7 @@ public class HumanVo {
         this.name = humanDto.getName();
         this.teamName = humanDto.getTeamName();
         this.count = humanDto.getCount();
-        this.shift = humanDto.getShift().value();
+        this.shift = humanDto.getShift().intValue();
         this.workDay = new ArrayList<>(humanDto.getWorkDay());
     }
 }

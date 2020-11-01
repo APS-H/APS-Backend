@@ -22,7 +22,7 @@ public class EquipmentVo {
     List<Integer> workDay;
 
     public EquipmentVo(EquipmentDto equipmentDto) {
-        this.deviceId = equipmentDto.getDeviceId();
+        this.deviceId = String.valueOf(equipmentDto.getDeviceId());
         this.name = equipmentDto.getName();
         this.count = equipmentDto.getCount();
         this.shift = equipmentDto.getShift().intValue();

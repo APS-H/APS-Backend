@@ -41,9 +41,6 @@ public class Human {
     @Column(name = "is_deleted")
     private Integer isDeleted;
 
-<<<<<<< HEAD
-
-=======
     public Human(HumanDto humanDto) {
         this.id = humanDto.getHumanId();
         this.groupName = humanDto.getTeamName();
@@ -58,5 +55,5 @@ public class Human {
         ResourceUseVo RUVO = new ResourceUseVo(String.valueOf(id), groupName, 0, usedTimeList);
         return RUVO;
     }
->>>>>>> 843ca1094375cd8b25aee856cb86ac136dad53bc
+
 }
