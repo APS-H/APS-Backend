@@ -26,7 +26,7 @@ public class ResourceDto {
     private List<ProductInResourceUseVo> usedTimeList;
 
     public ResourceDto(Human po) {
-        this.resourceId = po.getId();
+        this.resourceId = String.valueOf(po.getId());
         this.resourceName = po.getGroupName();
         this.resourceType = 0;
         this.shift=po.getDailySchedule();
@@ -34,7 +34,7 @@ public class ResourceDto {
     }
 
     public ResourceDto(Equipment po) {
-        this.resourceId = po.getId();
+        this.resourceId = String.valueOf(po.getId());
         this.resourceName = po.getName();
         this.resourceType = 1;
         this.shift=po.getDailySchedule();
@@ -51,10 +51,18 @@ public class ResourceDto {
     }
 
     public ResourceInResourceLoadVo getResourceLoad(){
-        return null;
+        ResourceInResourceLoadVo resourceInResourceLoadVo=new ResourceInResourceLoadVo(resourceName,getLoad());
+
+        return resourceInResourceLoadVo;
     }
     public double getLoad(){
-        return 0.0;
+        int usedTime=0;
+        for(ProductInResourceUseVo i:usedTimeList){
+            usedTime=(int)(usedTime+i.getEndTime().getTime()-i.getStartTime().getTime());
+        }
+        int workTime=(int)(shift.getEndTime().getTime()-shift.getStartTime().getTime());
+        double load=usedTime/workTime;
+        return load;
     }
 
 }

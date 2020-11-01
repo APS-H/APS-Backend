@@ -13,6 +13,7 @@ public class ResourceUseVo {
     String resourceId;
     String resourceName;
     Integer resourceType;
-    Integer production;
     List<ProductInResourceUseVo> usedTimeList;
+
+
 }

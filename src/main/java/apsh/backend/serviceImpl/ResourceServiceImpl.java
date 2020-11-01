@@ -42,7 +42,11 @@ public class ResourceServiceImpl implements ResourceService {
         for (int i = EquipmentAmount; i < RUList.size(); i++) {
             manpowerLoad = manpowerLoad + RUList.get(i).getLoad() / (RUList.size() - EquipmentAmount);
         }
-        ResourceLoadVo result = new ResourceLoadVo(deviceLoad, manpowerLoad, resourceLoadlist);
+
+        int start = pageSize * (pageNum - 1);
+        int end = pageSize * pageNum;
+
+        ResourceLoadVo result = new ResourceLoadVo(deviceLoad, manpowerLoad, resourceLoadlist.subList(0,EquipmentAmount),resourceLoadlist.subList(EquipmentAmount+1,RUList.size()));
         return result;
     }
 
@@ -64,11 +68,11 @@ public class ResourceServiceImpl implements ResourceService {
         List<ResourceDto> RUList0 = EList.stream().map(o -> {
             ResourceDto resourceUseDto = new ResourceDto(o);
             return resourceUseDto;
-        }).sorted(((o1, o2) -> o1.getId() < o2.getId() ? 1 : 0)).collect(Collectors.toList());
+        }).sorted(((o1, o2) -> Integer.parseInt(o1.getResourceId()) < Integer.parseInt(o2.getResourceId()) ? 1 : 0)).collect(Collectors.toList());
         List<ResourceDto> RUList1 = HList.stream().map(o -> {
             ResourceDto resourceUseDto = new ResourceDto(o);
             return resourceUseDto;
-        }).sorted(((o1, o2) -> o1.getId() < o2.getId() ? 1 : 0)).collect(Collectors.toList());
+        }).sorted(((o1, o2) -> Integer.parseInt(o1.getResourceId())< Integer.parseInt(o2.getResourceId())  ? 1 : 0)).collect(Collectors.toList());
 
         //合并两个list
         List<ResourceDto> RUList = new ArrayList<ResourceDto>();
