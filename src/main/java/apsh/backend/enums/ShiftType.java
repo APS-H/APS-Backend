@@ -44,18 +44,18 @@ public enum ShiftType {
     }
 
 
-    public Shift getShift() {
-        if ("早班".equals(value)) {
+    public Shift getShift(String values) {
+        if ("早班".equals(values)) {
             Shift s = new Shift();
-            s.setName(value);
+            s.setName(values);
             Time st=new Time(0,0,0);
             s.setStartTime(new Time(0,0,0));
 
             s.setEndTime(new Time(24,0,0));
             return s;
-        } else if ("晚班".equals(value)) {
+        } else if ("晚班".equals(values)) {
             Shift s = new Shift();
-            s.setName(value);
+            s.setName(values);
             Time st=new Time(0,0,0);
             s.setStartTime(new Time(19,0,0));
 
@@ -63,7 +63,7 @@ public enum ShiftType {
             return s;
         } else {
             Shift s = new Shift();
-            s.setName(value);
+            s.setName(values);
             Time st=new Time(0,0,0);
             s.setStartTime(new Time(7,0,0));
 

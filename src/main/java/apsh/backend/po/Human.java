@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,18 +44,31 @@ public class Human {
     @Column(name = "is_deleted")
     private Integer isDeleted;
 
-    public Human(Object o) {
-        this.groupName = o.code;
-        this.groupSize = o.count;
-        String[] result1 = o.day.split("-");
-        int start = day.valueOf(result1[0]).intValue();
-        int end = day.valueOf(result1[1]).intValue();
+    public Human(Object o) throws NoSuchFieldException, IllegalAccessException {
+        Field f;
+        f=o.getClass().getDeclaredField("code");
+        f.setAccessible(true);
+        this.groupName = (String) f.get(o);
+
+
+        f=o.getClass().getDeclaredField("count");
+        f.setAccessible(true);
+        this.groupSize = (Integer) f.get(o);
+
+        f=o.getClass().getDeclaredField("day");
+        f.setAccessible(true);
+        String[] result1 = ((String)f.get(o)).split("-");
+        int start = day.intValue(result1[0]);
+        int end = day.intValue(result1[1]);
         String Schedule = "1";
         for (int i = start + 1; i <= end; i++) {
             Schedule = Schedule + "," + String.valueOf(i);
         }
         this.weeklySchedule = Schedule;
-        this.dailySchedule= ShiftType.valueOf(o.shift).getShift();
+
+        f=o.getClass().getDeclaredField("shift");
+        f.setAccessible(true);
+        this.dailySchedule=  ShiftType.valueOf(0).getShift((String) f.get(o));
     }
 
     public Human(HumanDto humanDto) {
