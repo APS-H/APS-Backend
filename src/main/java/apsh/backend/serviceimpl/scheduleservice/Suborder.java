@@ -1,5 +1,6 @@
 package apsh.backend.serviceimpl.scheduleservice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
@@ -31,13 +32,30 @@ public class Suborder {
     private Integer deadlineTimeGrainIndex;
 
     @PlanningVariable(valueRangeProviderRefs = "manpowerRange")
-    private Manpower manpower;
+    private Manpower manpowerA;
+
+    @PlanningVariable(valueRangeProviderRefs = "manpowerRange", nullable = true)
+    private Manpower manpowerB;
+
+    @PlanningVariable(valueRangeProviderRefs = "manpowerRange", nullable = true)
+    private Manpower manpowerC;
 
     @PlanningVariable(valueRangeProviderRefs = "deviceRange")
     private Device device;
 
     @PlanningVariable(valueRangeProviderRefs = "timeGrainRange")
     private TimeGrain timeGrain;
+
+    public List<String> getManpowerIds() {
+        List<String> res = new ArrayList<String>(3);
+        if (manpowerA != null)
+            res.add(manpowerA.getId());
+        if (manpowerB != null)
+            res.add(manpowerB.getId());
+        if (manpowerC != null)
+            res.add(manpowerC.getId());
+        return res;
+    }
 
     public static Suborder create(Order order, int index, int needTimeInHour, int deadlineTimeGrainIndex) {
         return new Suborder(order.getId() + " " + index, order.getId(), needTimeInHour, order.getNeedPeopleCount(),

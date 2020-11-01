@@ -182,7 +182,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             Date startTime = suborder.getTimeGrain().getTime();
             Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);
             SuborderProductionDto suborderDto = new SuborderProductionDto(suborder.getId(), startTime, endTime,
-                    Arrays.asList(suborder.getManpower().getId()), suborder.getDevice().getId());
+                    suborder.getManpowerIds(), suborder.getDevice().getId());
             dto.getSuborders().add(suborderDto);
         }
         return res;
