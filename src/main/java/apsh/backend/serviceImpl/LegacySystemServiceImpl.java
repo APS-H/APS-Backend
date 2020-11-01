@@ -1,4 +1,4 @@
-package apsh.backend.serviceImpl;
+package apsh.backend.serviceimpl;
 
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
