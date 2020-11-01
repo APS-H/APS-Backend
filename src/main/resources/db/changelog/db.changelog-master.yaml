@@ -1,4 +1,146 @@
 databaseChangeLog:
-  -  preConditions:
-  -  runningAs:
-       username: root
+  - preConditions:
+  - runningAs:
+    username: root
+
+  - changeSet:
+      id: 1
+      author: peihongchen
+      changes:
+        # 班次表
+        - createTable:
+            tableName: shifts
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_time
+                  type: time
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_time
+                  type: int
+                  constraints:
+                    nullable: false
+        # 人力资源表
+        - createTable:
+            tableName: human_resources
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: group_name
+                  type: varchar(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: group_size
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: weekly_schedule
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: daily_schedule
+                  type: int
+                  constraints:
+                    nullable: false
+                    foreignKeyName: hr_daily_schedule_shifts
+                    references: shifts(id)
+              - column:
+                  name: is_deleted
+                  type: int
+                  constraints:
+                    nullable: false
+        # 设备资源表
+        - createTable:
+            tableName: equipment_resources
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: count
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: weekly_schedule
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: daily_schedule
+                  type: int
+                  constraints:
+                    nullable: false
+                    foreignKeyName: er_daily_schedule_shifts
+                    references: shifts(id)
+              - column:
+                  name: is_deleted
+                  type: int
+                  constraints:
+                    nullable: false
+        # 订单表
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: delivery_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_count
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_deleted
+                  type: int
+                  constraints:
+                    nullable: false
+
+

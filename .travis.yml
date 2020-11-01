@@ -21,7 +21,7 @@ install:
 
 # 执行构建脚本前执行
 before_script:
-  - mvn test -P test
+#  - mvn test -P test
 
 # 执行构建脚本
 script:
@@ -79,4 +79,4 @@ env:
   global:
     - GH_REF=https://github.com/APS-H/APS-Backend.git
     # apsh-backend镜像版本
-    - APSH_BACKEND=apsh-backend:v1-alpha
+    - APSH_BACKEND=apsh-backend:v1

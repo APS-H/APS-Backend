@@ -14,4 +14,6 @@ public class ResourceUseVo {
     String resourceName;
     Integer resourceType;
     List<ProductInResourceUseVo> usedTimeList;
+
+
 }

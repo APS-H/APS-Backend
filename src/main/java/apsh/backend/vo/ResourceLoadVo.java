@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class ResourceLoadVo {
     Double deviceLoad;
     Double manpowerLoad;
-    List<ResourceInResourceLoadVo> resourceLoadlist;
+    List<ResourceInResourceLoadVo> deviceLoadlist;
+    List<ResourceInResourceLoadVo> manpowerLoadlist;
 }
