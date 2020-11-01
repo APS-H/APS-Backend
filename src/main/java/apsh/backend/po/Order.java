@@ -1,6 +1,6 @@
 package apsh.backend.po;
 
-import apsh.backend.dto.OrderDto;
+import apsh.backend.dto.CustomerOrderDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,7 +35,7 @@ public class Order {
     @Column(name = "is_deleted")
     private Integer isDeleted;
 
-    public Order(OrderDto order) {
+    public Order(CustomerOrderDto order) {
         this.productId = order.getProductId();
         this.deliveryDate = new Date(order.getDayOfDelivery().getTime());
         this.productCount = order.getProductCount();

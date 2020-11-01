@@ -1,6 +1,6 @@
 package apsh.backend.serviceImpl;
 
-import apsh.backend.dto.OrderDto;
+import apsh.backend.dto.CustomerOrderDto;
 import apsh.backend.po.Order;
 import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.LegacySystemService;
@@ -32,14 +32,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDto> getAll(Integer pageSize, Integer pageNum) {
+    public List<CustomerOrderDto> getAll(Integer pageSize, Integer pageNum) {
         List<Order> legacySystemAllOrders = legacySystemService.getAllOrders();
         List<Order> incrementOrders = this.orderRepository.findAll();
-        List<OrderDto> mergedOrders = merge(legacySystemAllOrders, incrementOrders).parallelStream()
+        List<CustomerOrderDto> mergedOrders = merge(legacySystemAllOrders, incrementOrders).parallelStream()
                 .map(o -> {
-                    OrderDto orderDto = new OrderDto(o);
+                    CustomerOrderDto customerOrderDto = new CustomerOrderDto(o);
                     // TODO: orderDto.setState();
-                    return orderDto;
+                    return customerOrderDto;
                 }).sorted(((o1, o2) -> o1.getOrderId() < o2.getOrderId() ? 1 : 0)).collect(Collectors.toList());
         int start = pageSize * (pageNum - 1);
         int end = pageSize * pageNum;
@@ -66,7 +66,7 @@ public class OrderServiceImpl implements OrderService {
         return null;
     }
 
-    public void add(OrderDto order) {
+    public void add(CustomerOrderDto order) {
         logger.infoService("add", order);
         Order o = new Order(order);
         o.setIsDeleted(Order.NOT_DELETED);
@@ -74,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void update(OrderDto order) {
+    public void update(CustomerOrderDto order) {
         logger.infoService("update", order);
         Optional<Order> orderOptional = this.orderRepository.findById(order.getOrderId());
         // 订单编号不存在，直接添加订单记录，删除标志置为0

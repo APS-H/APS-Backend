@@ -1,6 +1,6 @@
 package apsh.backend.controller;
 
-import apsh.backend.dto.OrderDto;
+import apsh.backend.dto.CustomerOrderDto;
 import apsh.backend.service.OrderService;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
@@ -42,7 +42,7 @@ public class OrderController {
     @PostMapping()
     public void postOrder(@RequestBody OrderVo vo) {
         logger.infoControllerRequest("POST", "/order", vo);
-        orderService.update(new OrderDto(vo));
+        orderService.update(new CustomerOrderDto(vo));
     }
 
     @DeleteMapping(value = "/{id}")
@@ -54,7 +54,7 @@ public class OrderController {
     @PutMapping(value = "/{id}")
     public void putOrder(@PathVariable String id, @RequestBody OrderVo vo) {
         logger.infoControllerRequest("PUT", "/order/" + id, vo);
-        orderService.add(new OrderDto(vo));
+        orderService.add(new CustomerOrderDto(vo));
     }
 
     @GetMapping(value = "/all")

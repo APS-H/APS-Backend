@@ -34,7 +34,7 @@ public class Human {
     @Column(name = "weekly_schedule")
     private String weeklySchedule;
 
-    @Column(name = "daily_schedule")
+    @JoinColumn(name = "daily_schedule")
     @OneToOne(targetEntity = Shift.class)
     private Shift dailySchedule;
 
