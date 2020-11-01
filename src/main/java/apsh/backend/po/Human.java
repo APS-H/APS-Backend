@@ -1,6 +1,8 @@
 package apsh.backend.po;
 
 import apsh.backend.dto.HumanDto;
+import apsh.backend.enums.ShiftType;
+import apsh.backend.enums.day;
 import apsh.backend.vo.ProductInResourceUseVo;
 import apsh.backend.vo.ResourceUseVo;
 import lombok.AllArgsConstructor;
@@ -41,6 +43,20 @@ public class Human {
     @Column(name = "is_deleted")
     private Integer isDeleted;
 
+    public Human(Object o) {
+        this.groupName = o.code;
+        this.groupSize = o.count;
+        String[] result1 = o.day.split("-");
+        int start = day.valueOf(result1[0]).intValue();
+        int end = day.valueOf(result1[1]).intValue();
+        String Schedule = "1";
+        for (int i = start + 1; i <= end; i++) {
+            Schedule = Schedule + "," + String.valueOf(i);
+        }
+        this.weeklySchedule = Schedule;
+        this.dailySchedule= ShiftType.valueOf(o.shift).getShift();
+    }
+
     public Human(HumanDto humanDto) {
         this.id = humanDto.getHumanId();
         this.groupName = humanDto.getTeamName();
@@ -50,10 +66,6 @@ public class Human {
                 .orElse("");
     }
 
-    public ResourceUseVo toResourceUseVo() {
-        List<ProductInResourceUseVo> usedTimeList = new ArrayList<ProductInResourceUseVo>();
-        ResourceUseVo RUVO = new ResourceUseVo(String.valueOf(id), groupName, 0, usedTimeList);
-        return RUVO;
-    }
+
 
 }

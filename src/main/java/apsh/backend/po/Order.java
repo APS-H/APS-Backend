@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 @Data
 @AllArgsConstructor
@@ -39,5 +40,13 @@ public class Order {
         this.productId = order.getProductId();
         this.deliveryDate = new Date(order.getDayOfDelivery().getTime());
         this.productCount = order.getProductCount();
+    }
+
+    public Order(Object order) {
+        this.id= String.valueOf(order.number);
+        this.productId = String.valueOf(order.itemCode);
+        this.deliveryDate = new Date(order.getDayOfDelivery().getTime());
+        this.productCount = order.count;
+        this.deliveryDate = new SimpleDateFormat("yyyy/MM/dd").parse(order.date);
     }
 }

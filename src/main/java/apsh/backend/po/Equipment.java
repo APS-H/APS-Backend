@@ -1,6 +1,8 @@
 package apsh.backend.po;
 
 import apsh.backend.dto.EquipmentDto;
+import apsh.backend.enums.ShiftType;
+import apsh.backend.enums.day;
 import apsh.backend.vo.ProductInResourceUseVo;
 import apsh.backend.vo.ResourceUseVo;
 import lombok.AllArgsConstructor;
@@ -52,6 +54,17 @@ public class Equipment {
                 .orElse("");
     }
 
-
+    public Equipment(Object o) {
+        this.name = o.code;
+        String[] result1 = o.day.split("-");
+        int start = day.valueOf(result1[0]).intValue();
+        int end = day.valueOf(result1[1]).intValue();
+        String Schedule = "1";
+        for (int i = start + 1; i <= end; i++) {
+            Schedule = Schedule + "," + String.valueOf(i);
+        }
+        this.weeklySchedule = Schedule;
+        this.dailySchedule= ShiftType.valueOf(o.shift).getShift();
+    }
 
 }
