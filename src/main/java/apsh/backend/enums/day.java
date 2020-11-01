@@ -13,7 +13,7 @@ public enum day {
 
     Saturday("星期六"),
 
-    Sunday("星期天");
+    Sunday("星期日");
 
     private final String value;
 
@@ -46,8 +46,8 @@ public enum day {
         return this.value;
     }
 
-    public Integer intValue() {
-        switch (value) {
+    public static Integer intValue(String values) {
+        switch (values) {
             case "星期一":
                 return 1;
             case "星期二":
@@ -60,10 +60,10 @@ public enum day {
                 return 5;
             case "星期六":
                 return 6;
-            case "星期天":
+            case "星期日":
                 return 7;
             default:
-                return null;
+                return -1;
         }
     }
 }
