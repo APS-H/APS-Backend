@@ -14,7 +14,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class OrderDto {
+public class CustomerOrderDto {
 
     private Integer orderId;
     private Integer productId;
@@ -22,7 +22,7 @@ public class OrderDto {
     private OrderStatus state;
     private Integer productCount;
 
-    public OrderDto(OrderVo vo) {
+    public CustomerOrderDto(OrderVo vo) {
         this.orderId = Integer.valueOf(vo.getOrderId());
         this.productId = Integer.valueOf(vo.getStockId());
         this.dayOfDelivery = vo.getDayOfDelivery();
@@ -30,7 +30,7 @@ public class OrderDto {
         this.productCount = vo.getOrderAmount();
     }
 
-    public OrderDto(Order order) {
+    public CustomerOrderDto(Order order) {
         this.orderId = order.getId();
         this.productId = order.getProductId();
         this.dayOfDelivery = new Date(order.getDeliveryDate().getTime());
