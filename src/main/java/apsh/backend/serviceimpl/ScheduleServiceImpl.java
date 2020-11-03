@@ -334,7 +334,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             Set<SuborderProduction> suborderProductionPos = new HashSet<>(orderProductionDto.getSuborders().size());
             for (SuborderProductionDto dto : orderProductionDto.getSuborders())
                 suborderProductionPos.add(new SuborderProduction(null, dto.getId(), dto.getStartTime().toInstant(),
-                        dto.getEndTime().toInstant(), new HashSet<>(dto.getManpowerIds()), dto.getDeviceId()));
+                        dto.getEndTime().toInstant(), dto.getManpowerIds(), dto.getDeviceId()));
             orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(), suborderProductionPos));
         }
         orderProductionRepository.deleteAll();
