@@ -52,4 +52,10 @@ public class ScheduleServiceTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    void testGetArrangementPersistence() {
+        List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
+        System.out.println(orderProductionDtos.size());
+    }
 }

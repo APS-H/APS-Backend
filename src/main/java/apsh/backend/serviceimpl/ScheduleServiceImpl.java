@@ -1,13 +1,16 @@
 package apsh.backend.serviceimpl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.optaplanner.core.api.solver.SolverJob;
 import org.optaplanner.core.api.solver.SolverManager;
@@ -20,6 +23,9 @@ import apsh.backend.dto.DeviceDto;
 import apsh.backend.dto.OrderDto;
 import apsh.backend.dto.OrderProductionDto;
 import apsh.backend.dto.SuborderProductionDto;
+import apsh.backend.po.OrderProduction;
+import apsh.backend.po.SuborderProduction;
+import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.service.ScheduleService;
 import apsh.backend.serviceimpl.scheduleservice.Device;
 import apsh.backend.serviceimpl.scheduleservice.Manpower;
@@ -34,23 +40,52 @@ public class ScheduleServiceImpl implements ScheduleService {
     static Long millisecondCountPerHour = 60L * 60L * 1000L;
 
     @Autowired
+    private OrderProductionRepository orderProductionRepository;
+
+    @Autowired
     private SolverManager<SuborderSolution, UUID> solverManager;
 
-    // 初始排程
-    private List<Manpower> manpowers = null;
-    private List<Device> devices = null;
-    private List<Order> orders = null;
-    // 插单
-    private List<Order> urgentOrders = null;
     // 当前的任务
     private SolverJob<SuborderSolution, UUID> currentSolverJob = null;
-    // 结果 TODO: 持久化
+
+    // 初始排程
+    private List<Manpower> manpowers;
+    private List<Device> devices;
+    private List<Order> orders;
+    // 插单
+    private List<Order> urgentOrders;
+    // 排程结果
     private List<OrderProductionDto> solutionDto;
 
-    // 是否正在排程或排程结束 即添加过排程任务
-    private boolean solvingOrSolved = false;
-    // 当前的排程任务是否已经存储在solutionDto变量中且持久化
-    private boolean solutionSaved = false;
+    // 是否添加过排程任务 排程可能正在进行或排程结束 包括数据库中读取的结果
+    private boolean stateJobSubmitted = false;
+    // 当前的排程任务是否持久化
+    private boolean stateSolutionSaved = false;
+
+    @PostConstruct
+    private void init() {
+        manpowers = new ArrayList<>();
+        devices = new ArrayList<>();
+        orders = new ArrayList<>();
+        urgentOrders = new ArrayList<>();
+        solutionDto = new ArrayList<>();
+        // TODO: 载入初始输入
+        // 载入排程结果
+        List<OrderProduction> orderProductionPos = orderProductionRepository.findAll();
+        if (orderProductionPos.size() == 0)
+            return;
+        for (OrderProduction orderProductionPo : orderProductionPos) {
+            List<SuborderProductionDto> suborderProductionDtos = new ArrayList<>(
+                    orderProductionPo.getSuborderProductions().size());
+            for (SuborderProduction po : orderProductionPo.getSuborderProductions())
+                suborderProductionDtos.add(new SuborderProductionDto(po.getSuborderId(), Date.from(po.getStartTime()),
+                        Date.from(po.getEndTime()), new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
+            OrderProductionDto dto = new OrderProductionDto(orderProductionPo.getOrderId(), suborderProductionDtos);
+            solutionDto.add(dto);
+        }
+        stateJobSubmitted = true;
+        stateSolutionSaved = true;
+    }
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
@@ -65,8 +100,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         urgentOrders = new ArrayList<>();
         currentSolverJob = null;
         solutionDto = null;
-        solvingOrSolved = true;
-        solutionSaved = false;
+        stateJobSubmitted = true;
+        stateSolutionSaved = false;
 
         // 生成所有的时间粒度
         Date timeGrainRange = startTime;
@@ -108,12 +143,15 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeUrgentOrder(OrderDto orderDto, Date insertTime) {
-        if (!solvingOrSolved)
+        if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
-        if (currentSolverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
-            throw new RuntimeException("请等待上一次排程结束");
-        // 确保上一次排程被保存
-        tryGetCurrentArrangement();
+        // 如果结果没有保存说明排程可能正在运行
+        if (!stateSolutionSaved) {
+            if (currentSolverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
+                throw new RuntimeException("请等待上一次排程结束");
+            // 确保上一次排程被保存
+            tryGetCurrentArrangement();
+        }
         // 维护状态
         urgentOrders.add(new Order(orderDto.getId(), orderDto.getNeedTimeInHour(), orderDto.getNeedPeopleCount(),
                 orderDto.getDeadline(), orderDto.getAvailableManpowerIdList(),
@@ -123,16 +161,17 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void removeCurrentArrangement() {
-        solvingOrSolved = false;
-        deleteState();
+        stateJobSubmitted = false;
+        stateSolutionSaved = false;
+        deleteInputAndSolution();
     }
 
     @Override
     public List<OrderProductionDto> tryGetCurrentArrangement() {
-        if (!solvingOrSolved)
+        if (!stateJobSubmitted)
             throw new RuntimeException("还没有输入排程任务");
-        // 已经有保存的历史结果
-        if (solutionSaved)
+        // 已经有结果
+        if (stateSolutionSaved)
             return solutionDto;
         // 已经搜索完成但是没有保存
         if (currentSolverJob.getSolverStatus() == SolverStatus.NOT_SOLVING) {
@@ -143,8 +182,9 @@ public class ScheduleServiceImpl implements ScheduleService {
                 throw new RuntimeException("排程失败 原因未知");
             }
             solutionDto = getSolutionDto(solution);
-            saveState(manpowers, devices, orders, urgentOrders, solutionDto);
-            solutionSaved = true;
+            saveInputAndSolution();
+            stateSolutionSaved = true;
+            return solutionDto;
         }
         // 还没有搜索完成
         return null;
@@ -152,8 +192,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<OrderProductionDto> getCurrentArrangment() {
-        tryGetCurrentArrangement();
-        if (solutionDto != null)
+        if (!stateJobSubmitted)
+            throw new RuntimeException("还没有输入排程任务");
+        // 已经有结果
+        if (stateSolutionSaved)
             return solutionDto;
         // 阻塞
         SuborderSolution solution = null;
@@ -163,8 +205,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new RuntimeException("排程失败 原因未知");
         }
         solutionDto = getSolutionDto(solution);
-        saveState(manpowers, devices, orders, urgentOrders, solutionDto);
-        solutionSaved = true;
+        saveInputAndSolution();
+        stateSolutionSaved = true;
         return solutionDto;
     }
 
@@ -188,12 +230,25 @@ public class ScheduleServiceImpl implements ScheduleService {
         return res;
     }
 
-    private void saveState(List<Manpower> manpowers, List<Device> devices, List<Order> orders, List<Order> urgentOrders,
-            List<OrderProductionDto> solutionDto) {
-        // TODO: 持久化
+    /**
+     * 把当前输入和排程结果保存到数据库中
+     */
+    private void saveInputAndSolution() {
+        // TODO: 保存输入
+        List<OrderProduction> orderProductionPos = new ArrayList<>(solutionDto.size());
+        for (OrderProductionDto orderProductionDto : solutionDto) {
+            Set<SuborderProduction> suborderProductionPos = new HashSet<>(orderProductionDto.getSuborders().size());
+            for (SuborderProductionDto dto : orderProductionDto.getSuborders())
+                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), dto.getStartTime().toInstant(),
+                        dto.getEndTime().toInstant(), new HashSet<>(dto.getManpowerIds()), dto.getDeviceId()));
+            orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(), suborderProductionPos));
+        }
+        orderProductionRepository.deleteAll();
+        orderProductionRepository.saveAll(orderProductionPos);
     }
 
-    private void deleteState() {
-        // TODO: 持久化
+    private void deleteInputAndSolution() {
+        // TODO: 删除输入
+        orderProductionRepository.deleteAll();
     }
 }
