@@ -49,13 +49,6 @@ public class ScheduleServiceImpl implements ScheduleService {
     // 当前的任务
     private SolverJob<SuborderSolution, UUID> currentSolverJob = null;
 
-    // 初始排程
-    private Date startTime;
-    private List<Manpower> manpowers;
-    private List<Device> devices;
-    private List<Order> orders;
-    // 插单
-    private List<Order> urgentOrders;
     // 排程结果
     private List<OrderProductionDto> solutionDto;
 
@@ -66,12 +59,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @PostConstruct
     private void init() {
-        // TODO: 载入初始输入
-        startTime = new Date();
-        manpowers = new ArrayList<>();
-        devices = new ArrayList<>();
-        orders = new ArrayList<>();
-        urgentOrders = new ArrayList<>();
         // 载入排程结果
         solutionDto = new ArrayList<>();
         List<OrderProduction> orderProductionPos = orderProductionRepository.findAll();
@@ -94,20 +81,18 @@ public class ScheduleServiceImpl implements ScheduleService {
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
             List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
-        this.startTime = startTime;
-        manpowers = manpowerDtos.stream()
+        List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
                         manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
                 .collect(Collectors.toList());
-        devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
-        orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
-        urgentOrders = new ArrayList<>();
+        List<Device> devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
+        List<Order> orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
         currentSolverJob = null;
         solutionDto = null;
         stateJobSubmitted = true;
         stateSolutionSaved = false;
 
-        List<TimeGrain> timeGrains = generateTimeGrains();
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
 
         List<Suborder> suborders = splitOrders(orders, startTime, false);
 
@@ -121,7 +106,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public void arrangeUrgentOrder(OrderDto orderDto, Date insertTime) {
+    public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
+            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
         if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
         // 如果结果没有保存说明排程可能正在运行
@@ -131,28 +117,27 @@ public class ScheduleServiceImpl implements ScheduleService {
             // 确保能读取上一次排程结果
             tryGetCurrentArrangement();
         }
-        // 维护状态
-        urgentOrders.add(new Order(orderDto.getId(), orderDto.getNeedTimeInHour(), orderDto.getNeedPeopleCount(),
-                orderDto.getDeadline(), orderDto.getAvailableManpowerIdList(),
-                orderDto.getAvailableDeviceTypeIdList()));
+        // 初始化状态
+        List<Manpower> manpowers = manpowerDtos.stream()
+                .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
+                        manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
+                .collect(Collectors.toList());
+        List<Device> devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
+        List<Order> orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
+        Order urgentOrder = Order.fromDto(urgentOrderDto);
+        orders.add(urgentOrder);
         stateSolutionSaved = false;
 
         // 根据插单时间划分之前排程结果的子订单
         HashMap<String, Order> orderMap = new HashMap<>();
-        HashSet<String> urgentOrderIdSet = new HashSet<>();
         for (Order order : orders)
             orderMap.put(order.getId(), order);
-        for (Order order : urgentOrders) {
-            orderMap.put(order.getId(), order);
-            urgentOrderIdSet.add(order.getId());
-        }
         HashMap<String, Manpower> manpowerMap = new HashMap<>();
         for (Manpower manpower : manpowers)
             manpowerMap.put(manpower.getId(), manpower);
         HashMap<String, Device> deviceMap = new HashMap<>();
         for (Device device : devices)
             deviceMap.put(device.getId(), device);
-        Order urgentOrder = Order.fromDto(orderDto);
         List<Suborder> urgentSuborder = splitOrders(Arrays.asList(urgentOrder), insertTime, true);
         List<Suborder> fixedSuborders = new ArrayList<>();
         List<Suborder> dirtySuborders = new ArrayList<>();
@@ -163,7 +148,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 Suborder suborder = new Suborder();
                 suborder.setId(dto.getId());
                 suborder.setOrderId(orderId);
-                suborder.setUrgent(urgentOrderIdSet.contains(orderId));
+                suborder.setUrgent(order.getUrgent());
                 suborder.setNeedTimeInHour(
                         (int) ((dto.getEndTime().getTime() - dto.getStartTime().getTime()) / millisecondCountPerHour));
                 suborder.setNeedPeopleCount(order.getNeedPeopleCount());
@@ -187,7 +172,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 }
             }
 
-        List<TimeGrain> timeGrains = generateTimeGrains();
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
 
         // 重新排程
         dirtySuborders.addAll(urgentSuborder);
@@ -254,12 +239,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     /**
      * 生成所有的时间粒度
      */
-    private List<TimeGrain> generateTimeGrains() {
+    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime) {
         Date timeGrainRange = startTime;
         for (Order order : orders)
-            if (order.getDeadline().after(timeGrainRange))
-                timeGrainRange = order.getDeadline();
-        for (Order order : urgentOrders)
             if (order.getDeadline().after(timeGrainRange))
                 timeGrainRange = order.getDeadline();
         // 延迟系数
@@ -293,18 +275,17 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     // 根据Solution获取Dto
     private List<OrderProductionDto> getSolutionDto(SuborderSolution solution) {
+        HashSet<String> orderIdSet = new HashSet<>();
+        for (Suborder suborder : solution.getSuborders())
+            orderIdSet.add(suborder.getOrderId());
         List<OrderProductionDto> res = new ArrayList<>();
         HashMap<String, OrderProductionDto> orderProductionDtoMap = new HashMap<>();
-        for (Order order : orders) {
-            OrderProductionDto dto = new OrderProductionDto(order.getId(), new ArrayList<>());
+        for (String orderId : orderIdSet) {
+            OrderProductionDto dto = new OrderProductionDto(orderId, new ArrayList<>());
             res.add(dto);
-            orderProductionDtoMap.put(order.getId(), dto);
+            orderProductionDtoMap.put(orderId, dto);
         }
-        for (Order order : urgentOrders) {
-            OrderProductionDto dto = new OrderProductionDto(order.getId(), new ArrayList<>());
-            res.add(dto);
-            orderProductionDtoMap.put(order.getId(), dto);
-        }
+
         for (Suborder suborder : solution.getSuborders()) {
             OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
             Date startTime = suborder.getTimeGrain().getTime();
