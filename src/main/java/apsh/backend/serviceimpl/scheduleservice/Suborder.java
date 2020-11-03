@@ -21,6 +21,8 @@ public class Suborder {
     @NonNull
     private String orderId;
     @NonNull
+    private Boolean urgent;
+    @NonNull
     private Integer needTimeInHour;
     @NonNull
     private Integer needPeopleCount;
@@ -57,8 +59,10 @@ public class Suborder {
         return res;
     }
 
-    public static Suborder create(Order order, int index, int needTimeInHour, int deadlineTimeGrainIndex) {
-        return new Suborder(order.getId() + " " + index, order.getId(), needTimeInHour, order.getNeedPeopleCount(),
-                order.getAvailableManpowerIdList(), order.getAvailableDeviceTypeIdList(), deadlineTimeGrainIndex);
+    public static Suborder create(Order order, int index, boolean urgent, int needTimeInHour,
+            int deadlineTimeGrainIndex) {
+        return new Suborder(order.getId() + " " + index, order.getId(), urgent, needTimeInHour,
+                order.getNeedPeopleCount(), order.getAvailableManpowerIdList(), order.getAvailableDeviceTypeIdList(),
+                deadlineTimeGrainIndex);
     }
 }

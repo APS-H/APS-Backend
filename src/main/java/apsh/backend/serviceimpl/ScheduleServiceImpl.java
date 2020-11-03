@@ -1,6 +1,7 @@
 package apsh.backend.serviceimpl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private SolverJob<SuborderSolution, UUID> currentSolverJob = null;
 
     // 初始排程
+    private Date startTime;
     private List<Manpower> manpowers;
     private List<Device> devices;
     private List<Order> orders;
@@ -64,13 +66,14 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @PostConstruct
     private void init() {
+        // TODO: 载入初始输入
+        startTime = new Date();
         manpowers = new ArrayList<>();
         devices = new ArrayList<>();
         orders = new ArrayList<>();
         urgentOrders = new ArrayList<>();
-        solutionDto = new ArrayList<>();
-        // TODO: 载入初始输入
         // 载入排程结果
+        solutionDto = new ArrayList<>();
         List<OrderProduction> orderProductionPos = orderProductionRepository.findAll();
         if (orderProductionPos.size() == 0)
             return;
@@ -91,6 +94,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
             List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
+        this.startTime = startTime;
         manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
                         manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
@@ -103,40 +107,15 @@ public class ScheduleServiceImpl implements ScheduleService {
         stateJobSubmitted = true;
         stateSolutionSaved = false;
 
-        // 生成所有的时间粒度
-        Date timeGrainRange = startTime;
-        for (Order order : orders)
-            if (order.getDeadline().after(timeGrainRange))
-                timeGrainRange = order.getDeadline();
-        // 延迟系数
-        int factor = 5;
-        int availableTimeInHour = (int) ((timeGrainRange.getTime() - startTime.getTime()) / millisecondCountPerHour)
-                * factor;
-        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
-        for (int i = 0; i < availableTimeInHour; i++)
-            timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
+        List<TimeGrain> timeGrains = generateTimeGrains();
 
-        // 划分子订单
-        // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-        int maxSuborderNeedTimeInHour = 3;
-        List<Suborder> suborders = new ArrayList<>(orders.size());
-        for (Order order : orders) {
-            int suborderIndex = 0;
-            int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
-                    / millisecondCountPerHour);
-            int remainTimeInHour = order.getNeedTimeInHour();
-            while (remainTimeInHour > 0) {
-                suborders.add(Suborder.create(order, suborderIndex++,
-                        Math.min(maxSuborderNeedTimeInHour, remainTimeInHour), ddlTimeGrainIndex));
-                remainTimeInHour -= maxSuborderNeedTimeInHour;
-            }
-        }
+        List<Suborder> suborders = splitOrders(orders, startTime, false);
 
         // 调用排程库
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
-        SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), manpowers,
-                devices, timeGrains, suborders, null);
+        SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), new ArrayList<>(),
+                manpowers, devices, timeGrains, suborders, null);
         UUID problemId = UUID.randomUUID();
         currentSolverJob = solverManager.solve(problemId, solution);
     }
@@ -149,14 +128,76 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (!stateSolutionSaved) {
             if (currentSolverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
                 throw new RuntimeException("请等待上一次排程结束");
-            // 确保上一次排程被保存
+            // 确保能读取上一次排程结果
             tryGetCurrentArrangement();
         }
         // 维护状态
         urgentOrders.add(new Order(orderDto.getId(), orderDto.getNeedTimeInHour(), orderDto.getNeedPeopleCount(),
                 orderDto.getDeadline(), orderDto.getAvailableManpowerIdList(),
                 orderDto.getAvailableDeviceTypeIdList()));
-        // TODO: 重新排程
+        stateSolutionSaved = false;
+
+        // 根据插单时间划分之前排程结果的子订单
+        HashMap<String, Order> orderMap = new HashMap<>();
+        HashSet<String> urgentOrderIdSet = new HashSet<>();
+        for (Order order : orders)
+            orderMap.put(order.getId(), order);
+        for (Order order : urgentOrders) {
+            orderMap.put(order.getId(), order);
+            urgentOrderIdSet.add(order.getId());
+        }
+        HashMap<String, Manpower> manpowerMap = new HashMap<>();
+        for (Manpower manpower : manpowers)
+            manpowerMap.put(manpower.getId(), manpower);
+        HashMap<String, Device> deviceMap = new HashMap<>();
+        for (Device device : devices)
+            deviceMap.put(device.getId(), device);
+        Order urgentOrder = Order.fromDto(orderDto);
+        List<Suborder> urgentSuborder = splitOrders(Arrays.asList(urgentOrder), insertTime, true);
+        List<Suborder> fixedSuborders = new ArrayList<>();
+        List<Suborder> dirtySuborders = new ArrayList<>();
+        for (OrderProductionDto orderProductionDto : solutionDto)
+            for (SuborderProductionDto dto : orderProductionDto.getSuborders()) {
+                String orderId = orderProductionDto.getId();
+                Order order = orderMap.get(orderId);
+                Suborder suborder = new Suborder();
+                suborder.setId(dto.getId());
+                suborder.setOrderId(orderId);
+                suborder.setUrgent(urgentOrderIdSet.contains(orderId));
+                suborder.setNeedTimeInHour(
+                        (int) ((dto.getEndTime().getTime() - dto.getStartTime().getTime()) / millisecondCountPerHour));
+                suborder.setNeedPeopleCount(order.getNeedPeopleCount());
+                suborder.setAvailableManpowerIdList(order.getAvailableManpowerIdList());
+                suborder.setAvailableDeviceTypeIdList(order.getAvailableDeviceTypeIdList());
+                int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
+                        / millisecondCountPerHour);
+                suborder.setDeadlineTimeGrainIndex(ddlTimeGrainIndex);
+                if (dto.getStartTime().after(insertTime))
+                    // 需要重新排程
+                    dirtySuborders.add(suborder);
+                else {
+                    // 使用之前的结果
+                    suborder.setManpowerA(manpowerMap.get(dto.getManpowerIds().get(0)));
+                    if (dto.getManpowerIds().size() > 1)
+                        suborder.setManpowerB(manpowerMap.get(dto.getManpowerIds().get(1)));
+                    if (dto.getManpowerIds().size() > 2)
+                        suborder.setManpowerC(manpowerMap.get(dto.getManpowerIds().get(2)));
+                    suborder.setDevice(deviceMap.get(dto.getDeviceId()));
+                    fixedSuborders.add(suborder);
+                }
+            }
+
+        List<TimeGrain> timeGrains = generateTimeGrains();
+
+        // 重新排程
+        dirtySuborders.addAll(urgentSuborder);
+        // 调用排程库
+        Calendar startTimeCalendar = Calendar.getInstance();
+        startTimeCalendar.setTime(startTime);
+        SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), new ArrayList<>(),
+                manpowers, devices, timeGrains, dirtySuborders, null);
+        UUID problemId = UUID.randomUUID();
+        currentSolverJob = solverManager.solve(problemId, solution);
     }
 
     @Override
@@ -210,6 +251,46 @@ public class ScheduleServiceImpl implements ScheduleService {
         return solutionDto;
     }
 
+    /**
+     * 生成所有的时间粒度
+     */
+    private List<TimeGrain> generateTimeGrains() {
+        Date timeGrainRange = startTime;
+        for (Order order : orders)
+            if (order.getDeadline().after(timeGrainRange))
+                timeGrainRange = order.getDeadline();
+        for (Order order : urgentOrders)
+            if (order.getDeadline().after(timeGrainRange))
+                timeGrainRange = order.getDeadline();
+        // 延迟系数
+        int factor = 3;
+        int availableTimeInHour = (int) ((timeGrainRange.getTime() - startTime.getTime()) / millisecondCountPerHour)
+                * factor;
+        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
+        for (int i = 0; i < availableTimeInHour; i++)
+            timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
+        return timeGrains;
+    }
+
+    private List<Suborder> splitOrders(List<Order> orders, Date startTime, boolean urgent) {
+        // 划分子订单
+        // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
+        int maxSuborderNeedTimeInHour = 3;
+        List<Suborder> suborders = new ArrayList<>(orders.size());
+        for (Order order : orders) {
+            int suborderIndex = 0;
+            int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
+                    / millisecondCountPerHour);
+            int remainTimeInHour = order.getNeedTimeInHour();
+            while (remainTimeInHour > 0) {
+                suborders.add(Suborder.create(order, suborderIndex++, urgent,
+                        Math.min(maxSuborderNeedTimeInHour, remainTimeInHour), ddlTimeGrainIndex));
+                remainTimeInHour -= maxSuborderNeedTimeInHour;
+            }
+        }
+        return suborders;
+    }
+
     // 根据Solution获取Dto
     private List<OrderProductionDto> getSolutionDto(SuborderSolution solution) {
         List<OrderProductionDto> res = new ArrayList<>();
@@ -219,7 +300,20 @@ public class ScheduleServiceImpl implements ScheduleService {
             res.add(dto);
             orderProductionDtoMap.put(order.getId(), dto);
         }
+        for (Order order : urgentOrders) {
+            OrderProductionDto dto = new OrderProductionDto(order.getId(), new ArrayList<>());
+            res.add(dto);
+            orderProductionDtoMap.put(order.getId(), dto);
+        }
         for (Suborder suborder : solution.getSuborders()) {
+            OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
+            Date startTime = suborder.getTimeGrain().getTime();
+            Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);
+            SuborderProductionDto suborderDto = new SuborderProductionDto(suborder.getId(), startTime, endTime,
+                    suborder.getManpowerIds(), suborder.getDevice().getId());
+            dto.getSuborders().add(suborderDto);
+        }
+        for (Suborder suborder : solution.getFixedSuborders()) {
             OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
             Date startTime = suborder.getTimeGrain().getTime();
             Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);
