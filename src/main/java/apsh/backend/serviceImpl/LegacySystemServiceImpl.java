@@ -17,8 +17,8 @@ import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 @Service
 public class LegacySystemServiceImpl implements LegacySystemService {
-    String orderServiceUrl = "http://localhost:8083/Order?wsdl";
-    String ERPServiceUrl = "http://localhost:8086/ERP?wsdl";
+    String orderServiceUrl = "http://123.57.73.97:30109/order?wsdl";
+    String ERPServiceUrl = "http://123.57.73.97:30309/erp?wsdl";
 
     @Override
     public List<Order> getAllOrders() {
@@ -110,7 +110,6 @@ public class LegacySystemServiceImpl implements LegacySystemService {
         return null;
 
     }
-
 
 
 }
