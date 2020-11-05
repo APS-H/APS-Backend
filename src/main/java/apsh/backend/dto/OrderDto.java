@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderDto {
     private String id;
+    private Boolean urgent;
     /**
      * 完成订单需要的总时间
      */
