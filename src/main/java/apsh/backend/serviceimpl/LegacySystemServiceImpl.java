@@ -1,5 +1,6 @@
 package apsh.backend.serviceimpl;
 
+import apsh.backend.po.Craft;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Order;
@@ -109,6 +110,12 @@ public class LegacySystemServiceImpl implements LegacySystemService {
         } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    @Override
+    public List<Craft> getAllCrafts() {
+        // TODO : 获取所有的工艺路线
         return null;
     }
 }

@@ -1,5 +1,6 @@
 package apsh.backend.service;
 
+import apsh.backend.po.Craft;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Order;
@@ -13,5 +14,7 @@ public interface LegacySystemService {
     List<Human> getAllHumans();
 
     List<Equipment> getAllEquipments();
+
+    List<Craft> getAllCrafts();
 
 }
