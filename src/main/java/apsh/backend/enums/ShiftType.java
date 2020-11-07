@@ -1,5 +1,12 @@
 package apsh.backend.enums;
 
+import apsh.backend.po.Shift;
+import apsh.backend.repository.ShiftRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
+
+import java.sql.Time;
+
 public enum ShiftType {
     // 早班
     DAY_SHIFT("早班"),
@@ -37,5 +44,27 @@ public enum ShiftType {
         } else if ("晚班".equals(value)) {
             return 1;
         } else return 2;
+    }
+
+    public Shift getShift(String values) {
+        if ("早班".equals(values)) {
+            Shift s = new Shift();
+            s.setName(values);
+            s.setStartTime(new Time(0, 0, 0));
+            s.setEndTime(new Time(24, 0, 0));
+            return s;
+        } else if ("晚班".equals(values)) {
+            Shift s = new Shift();
+            s.setName(values);
+            s.setStartTime(new Time(19, 0, 0));
+            s.setEndTime(new Time(7, 0, 0));
+            return s;
+        } else {
+            Shift s = new Shift();
+            s.setName(values);
+            s.setStartTime(new Time(7, 0, 0));
+            s.setEndTime(new Time(19, 0, 0));
+            return s;
+        }
     }
 }

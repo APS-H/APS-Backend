@@ -11,7 +11,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductInResourceUseVo {
-    String productId;
+//    String productId;
     Integer production;
     Date startTime;
     Date endTime;
