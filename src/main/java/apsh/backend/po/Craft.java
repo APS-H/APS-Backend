@@ -29,12 +29,12 @@ public class Craft {
     /**
      * 可供选择的人力资源列表
      */
-    private List<String> availableHumanList;
+    private List<Human> availableHumanList;
 
     /**
      * 可供选择的设备列表
      */
-    private List<String> availableEquipmentList;
+    private List<Equipment> availableEquipmentList;
 
     /**
      * 标准产能，单位小时
