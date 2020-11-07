@@ -37,7 +37,7 @@ public class OrderProduction {
     @JoinColumn(name = "order_production_id")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<SuborderProduction> suborderProductions;
-<<<<<<< HEAD
+
 
     public List<SuborderProduction> getSuborderProductionsByDate(Date date) {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
@@ -53,6 +53,6 @@ public class OrderProduction {
 
     }
 }
-=======
-}
->>>>>>> dd69359db8668e9a9802ab8527197a421980fde3
+
+
+

@@ -5,6 +5,9 @@ import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Order;
 import apsh.backend.service.LegacySystemService;
+import apsh.backend.serviceImpl.LegacySystemWebService.ERPService;
+import apsh.backend.serviceImpl.LegacySystemWebService.ERPServiceService;
+import apsh.backend.serviceImpl.LegacySystemWebService.Product;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.springframework.stereotype.Service;
@@ -115,17 +118,14 @@ public class LegacySystemServiceImpl implements LegacySystemService {
         return null;
     }
 
-//<<<<<<< HEAD:src/main/java/apsh/backend/serviceImpl/LegacySystemServiceImpl.java
-//
-//    public static void main(String args []){
-//        LegacySystemServiceImpl s=new LegacySystemServiceImpl();
-//        List<Order> m=s.getAllOrders();
-//        int a=0;
-//=======
+
     @Override
     public List<Craft> getAllCrafts() {
-        // TODO : 获取所有的工艺路线
-        return null;
+        ERPServiceService ESS=new ERPServiceService();
+        ERPService ES=ESS.getERPServicePort();
+        List<Product> crafts=ES.getProductAll();
+        List<Craft> craftList=crafts.stream().map(Product::getCraft).collect(Collectors.toList());
+        return craftList;
 
     }
 }

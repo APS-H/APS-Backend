@@ -3,6 +3,8 @@ package apsh.backend.po;
 import apsh.backend.dto.HumanDto;
 import apsh.backend.enums.ShiftType;
 import apsh.backend.enums.day;
+import apsh.backend.service.ShiftService;
+import apsh.backend.serviceimpl.ShiftServiceImpl;
 import apsh.backend.vo.ProductInResourceUseVo;
 import apsh.backend.vo.ResourceUseVo;
 import lombok.AllArgsConstructor;
@@ -46,29 +48,29 @@ public class Human {
 
     public Human(Object o) throws NoSuchFieldException, IllegalAccessException {
         Field f;
-        f=o.getClass().getDeclaredField("code");
+        f = o.getClass().getDeclaredField("code");
         f.setAccessible(true);
         this.groupName = (String) f.get(o);
 
 
-        f=o.getClass().getDeclaredField("count");
+        f = o.getClass().getDeclaredField("count");
         f.setAccessible(true);
         this.groupSize = (Integer) f.get(o);
 
-        f=o.getClass().getDeclaredField("day");
+        f = o.getClass().getDeclaredField("day");
         f.setAccessible(true);
-        String[] result1 = ((String)f.get(o)).split("-");
+        String[] result1 = ((String) f.get(o)).split("-");
         int start = day.intValue(result1[0]);
         int end = day.intValue(result1[1]);
-        String Schedule = "1";
+        StringBuilder Schedule = new StringBuilder("1");
         for (int i = start + 1; i <= end; i++) {
-            Schedule = Schedule + "," + String.valueOf(i);
+            Schedule.append(",").append(i);
         }
-        this.weeklySchedule = Schedule;
+        this.weeklySchedule = Schedule.toString();
 
-        f=o.getClass().getDeclaredField("shift");
+        f = o.getClass().getDeclaredField("shift");
         f.setAccessible(true);
-        this.dailySchedule=  ShiftType.valueOf(0).getShift((String) f.get(o));
+        this.dailySchedule = ShiftType.valueOf(0).getShift((String) f.get(o));
     }
 
     public Human(HumanDto humanDto) {
@@ -79,7 +81,6 @@ public class Human {
                 .map(String::valueOf).reduce((h1, h2) -> h1 + "," + h2)
                 .orElse("");
     }
-
 
 
 }
