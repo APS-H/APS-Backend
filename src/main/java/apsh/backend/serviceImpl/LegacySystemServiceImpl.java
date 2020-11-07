@@ -1,4 +1,4 @@
-package apsh.backend.serviceImpl;
+package apsh.backend.serviceimpl;
 
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
@@ -17,8 +17,8 @@ import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 @Service
 public class LegacySystemServiceImpl implements LegacySystemService {
-    String orderServiceUrl = "http://123.57.73.97:30109/order?wsdl";
-    String ERPServiceUrl = "http://123.57.73.97:30309/erp?wsdl";
+   final String orderServiceUrl = "http://81.69.252.233:9001/order?wsdl";
+   final String ERPServiceUrl = "http://hebomou.top:9003/erp?wsdl";
 
     @Override
     public List<Order> getAllOrders() {
@@ -112,4 +112,9 @@ public class LegacySystemServiceImpl implements LegacySystemService {
     }
 
 
+    public static void main(String args []){
+        LegacySystemServiceImpl s=new LegacySystemServiceImpl();
+        List<Order> m=s.getAllOrders();
+        int a=0;
+    }
 }

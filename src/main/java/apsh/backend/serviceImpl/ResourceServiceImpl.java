@@ -1,11 +1,14 @@
-package apsh.backend.serviceImpl;
+package apsh.backend.serviceimpl;
 
 import apsh.backend.dto.ResourceDto;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
+import apsh.backend.po.OrderProduction;
+import apsh.backend.po.SuborderProduction;
 import apsh.backend.repository.EquipmentRepository;
 import apsh.backend.repository.HumanRepository;
-import apsh.backend.repository.ScheduleRepository;
+import apsh.backend.repository.OrderProductionRepository;
+import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.ResourceService;
 import apsh.backend.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +21,17 @@ import java.util.stream.Collectors;
 @Service
 public class ResourceServiceImpl implements ResourceService {
 
-    private final ScheduleRepository scheduleRepository;
+    private final OrderProductionRepository orderProductionRepository;
     private final EquipmentRepository equipmentRepository;
     private final HumanRepository humanRepository;
+    private final OrderRepository orderRepository;
 
     @Autowired
-    public ResourceServiceImpl(ScheduleRepository scheduleRepository, EquipmentRepository equipmentRepository, HumanRepository humanRepository) {
+    public ResourceServiceImpl(OrderProductionRepository orderProductionRepository, EquipmentRepository equipmentRepository, HumanRepository humanRepository, OrderRepository orderRepository) {
         this.equipmentRepository = equipmentRepository;
         this.humanRepository = humanRepository;
-        this.scheduleRepository = scheduleRepository;
+        this.orderProductionRepository = orderProductionRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
@@ -74,31 +79,52 @@ public class ResourceServiceImpl implements ResourceService {
             return resourceUseDto;
         }).sorted(((o1, o2) -> Integer.parseInt(o1.getResourceId())< Integer.parseInt(o2.getResourceId())  ? 1 : 0)).collect(Collectors.toList());
 
-        //合并两个list
-        List<ResourceDto> RUList = new ArrayList<ResourceDto>();
-        RUList.addAll(RUList0);
-        RUList.addAll(RUList1);
+
 
 
         //获取生产单与生产单资源关系表
         List<ScheduleProductionTableProductionVo> SPTPList = new ArrayList<ScheduleProductionTableProductionVo>();
         List<ScheduleProductionResourceTableProductionVo> SPRTPList = new ArrayList<ScheduleProductionResourceTableProductionVo>();
         // TODO
+        List<OrderProduction> orderProductions=orderProductionRepository.findAll();
 
         //假定接口，根据生产单id查询资源关系，接口调用方法为scheduleRepository.getRelateResource(id);
-//        for (ScheduleProductionTableProductionVo sptp : SPTPList) {
-//            ScheduleProductionResourceTableProductionVo sprtp=scheduleRepository.getRelateResource(sptp.getid());
-//
-//
-//            for (ResourceUseVo RUV : RUList) {
-//                if (RUV.id==sprtp.id){
-//                     RUV.addAllTask(sptp);
-//                          break;
-//                }
-//
-//            }
-//        }
-//
+        for (OrderProduction OP : orderProductions) {
+            List<SuborderProduction> SOPs=OP.getSuborderProductionsByDate(date);
+            int stock_id=orderRepository.findById(Integer.parseInt(OP.getOrderId())).get().getProductId();
+            if(!SOPs.isEmpty()){
+                for(SuborderProduction SOP:SOPs) {
+                    for (ResourceDto equipment : RUList0) {
+                        if (equipment.getResourceId().equals( SOP.getDeviceId())){
+                            equipment.addUsedTime(SOP,stock_id);
+                            break;
+                        }
+                    }
+
+                    List<String> manPowerIds=new ArrayList<>(SOP.getManpowerIds());
+                    for(String id:manPowerIds){
+
+                        for (ResourceDto human : RUList1) {
+                            if (human.getResourceId() .equals(id)){
+                                human.addUsedTime(SOP,stock_id);
+                                break;
+                            }
+                        }
+
+
+                    }
+
+
+
+                }
+
+            }
+        }
+
+        //合并两个list
+        List<ResourceDto> RUList = new ArrayList<ResourceDto>();
+        RUList.addAll(RUList0);
+        RUList.addAll(RUList1);
         return RUList;
     }
 }

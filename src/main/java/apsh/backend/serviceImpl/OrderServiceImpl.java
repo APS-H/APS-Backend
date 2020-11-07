@@ -1,7 +1,8 @@
-package apsh.backend.serviceImpl;
+package apsh.backend.serviceimpl;
 
 import apsh.backend.dto.CustomerOrderDto;
 import apsh.backend.po.Order;
+import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.LegacySystemService;
 import apsh.backend.service.OrderService;
@@ -24,11 +25,12 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final LegacySystemService legacySystemService;
     private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderServiceImpl.class));
-
+    private final OrderProductionRepository orderProductionRepository;
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, LegacySystemService legacySystemService) {
+    public OrderServiceImpl(OrderRepository orderRepository, LegacySystemService legacySystemService, OrderProductionRepository orderProductionRepository) {
         this.orderRepository = orderRepository;
         this.legacySystemService = legacySystemService;
+        this.orderProductionRepository = orderProductionRepository;
     }
 
     @Override

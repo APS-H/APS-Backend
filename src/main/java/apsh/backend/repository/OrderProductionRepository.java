@@ -1,9 +1,13 @@
 package apsh.backend.repository;
 
-import apsh.backend.po.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import apsh.backend.po.OrderProduction;
+
 @Repository
-public interface ScheduleRepository extends JpaRepository<Order, Integer> {
+public interface OrderProductionRepository extends JpaRepository<OrderProduction, Integer> {
+
+
+
 }

@@ -17,10 +17,6 @@
         <!--    生产环境    -->
         <profile>
             <id>prod</id>
-            <activation>
-                <!-- 设置默认激活这个配置 -->
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <profiles.active>prod</profiles.active>
             </properties>
@@ -29,6 +25,10 @@
         <!--    测试环境    -->
         <profile>
             <id>test</id>
+            <activation>
+                <!-- 设置默认激活这个配置 -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <profiles.active>test</profiles.active>
             </properties>
