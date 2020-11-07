@@ -28,8 +28,8 @@ public class TimeServiceImpl implements TimeService {
 
     @Override
     public void updateTime(SystemTime systemTime) {
-        if (systemTime.getStartTime() != null || systemTime.getTimeSpeed() != null) {
-            logger.errorService("updateTime", systemTime, "startTime and timeSpeed cannot be null");
+        if (systemTime.getStartTime() == null && systemTime.getTimeSpeed() == null) {
+            logger.errorService("updateTime", systemTime, "startTime and timeSpeed cannot be both null");
             return;
         }
         saveTime(systemTime);
@@ -37,6 +37,10 @@ public class TimeServiceImpl implements TimeService {
 
     @Override
     public void setTime(SystemTime systemTime) {
+        if (systemTime.getStartTime() == null || systemTime.getTimeSpeed() == null) {
+            logger.errorService("setTime", systemTime, "startTime or timeSpeed cannot be null");
+            return;
+        }
         saveTime(systemTime);
     }
 
@@ -55,7 +59,16 @@ public class TimeServiceImpl implements TimeService {
                 logger.errorService("saveTime", systemTime, e.getLocalizedMessage());
                 return;
             }
+        } else if (systemTime.getStartTime() == null || systemTime.getTimeSpeed() == null) {
+            SystemTime curTime = loadTime();
+            if (curTime == null) return;
+            if (systemTime.getStartTime() == null) {
+                systemTime.setStartTime(curTime.getStartTime());
+            } else {
+                systemTime.setTimeSpeed(curTime.getTimeSpeed());
+            }
         }
+
         try {
             PrintWriter pw = new PrintWriter(path.toFile());
             pw.println(systemTime.getStartTime() + "," + systemTime.getTimeSpeed());
@@ -68,6 +81,7 @@ public class TimeServiceImpl implements TimeService {
         // TODO 调用排程模块重新计算排程
     }
 
+    // return null if time recorded illegal
     private SystemTime loadTime() {
         Path path = Paths.get(timeServerUrl);
         if (!Files.exists(path)) {
@@ -87,7 +101,11 @@ public class TimeServiceImpl implements TimeService {
             return null;
         }
         String[] values = lines.get(0).split(",");
-        return new SystemTime(LocalDateTime.parse(values[0]), Double.parseDouble(values[1]));
+        try {
+            return new SystemTime(LocalDateTime.parse(values[0]), Double.parseDouble(values[1]));
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
 }

@@ -8,6 +8,8 @@ spring:
       ddl-auto: update
     show-sql: true
 
+time-server-url: /tmp/.apsh-backend/apsh-ts  # 系统起始时间 和 时间流动系数
+
 optaplanner:
   solver:
     termination:
