@@ -1,0 +1,57 @@
+GET http://localhost:8080/order/all?pageNum=1&pageSize=20
+Content-Type: application/json
+
+###########
+
+# get time set above
+# {
+#   "startTime": "2020-11-11 12:00",
+#   "flowFactor": 2.0
+# }
+GET http://localhost:8080/system-time/
+
+###########
+
+# successful update
+POST http://localhost:8080/system-time
+Content-Type: application/json
+
+{
+  "startTime": "2020-11-10 12:00"
+}
+
+###########
+
+# get time update above
+# {
+#   "startTime": "2020-11-10 12:00",
+#   "flowFactor": 2.0
+# }
+GET http://localhost:8080/system-time/
+
+###########
+
+# failed request
+PUT http://localhost:8080/system-time/
+Content-Type: application/json
+
+{
+  "startTime": "2020-11-11 12:00"
+}
+
+###########
+
+# failed update
+POST http://localhost:8080/system-time
+Content-Type: application/json
+
+{}
+
+###########
+
+# get time update above
+# {
+#   "startTime": "2020-11-10 12:00",
+#   "flowFactor": 2.0
+# }
+GET http://localhost:8080/system-time/

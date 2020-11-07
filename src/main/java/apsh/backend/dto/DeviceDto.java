@@ -16,4 +16,9 @@ public class DeviceDto {
      * 设备类型id
      */
     private String deviceTypeId;
+
+    public DeviceDto(Integer id, EquipmentDto equipmentDto) {
+        this.id = equipmentDto.getName() + id;
+        this.deviceTypeId = equipmentDto.getName();
+    }
 }

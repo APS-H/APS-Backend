@@ -66,12 +66,12 @@ public class Equipment {
         String[] result1 = ((String) f.get(o)).split("-");
         int start = day.intValue(result1[0]);
         int end = day.intValue(result1[1]);
-        String Schedule = "1";
+        StringBuilder Schedule = new StringBuilder("1");
         for (int i = start + 1; i <= end; i++) {
-            Schedule = Schedule + "," + String.valueOf(i);
+            Schedule.append(",").append(i);
         }
-        ;
-        this.weeklySchedule = Schedule;
+
+        this.weeklySchedule = Schedule.toString();
 
         f = o.getClass().getDeclaredField("shift");
         f.setAccessible(true);

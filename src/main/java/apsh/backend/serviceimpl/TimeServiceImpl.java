@@ -1,10 +1,11 @@
 package apsh.backend.serviceimpl;
 
 import apsh.backend.dto.SystemTime;
-import apsh.backend.service.TimeService;
+import apsh.backend.service.*;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +15,39 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class TimeServiceImpl implements TimeService {
+public class TimeServiceImpl implements TimeService, GodService {
 
     @Value("${time-server-url}")
     private String timeServerUrl;
 
+    private final ScheduleService scheduleService;
+    private final LegacySystemService legacySystemService;
+    private final OrderService orderService;
+    private final HumanService humanService;
+    private final EquipmentService equipmentService;
+
     private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(TimeServiceImpl.class));
+
+    @Autowired
+    public TimeServiceImpl(
+            ScheduleService scheduleService,
+            LegacySystemService legacySystemService,
+            OrderService orderService,
+            HumanService humanService,
+            EquipmentService equipmentService
+    ) {
+        this.scheduleService = scheduleService;
+        this.legacySystemService = legacySystemService;
+        this.orderService = orderService;
+        this.humanService = humanService;
+        this.equipmentService = equipmentService;
+    }
 
     @Override
     public void updateTime(SystemTime systemTime) {
@@ -49,6 +72,14 @@ public class TimeServiceImpl implements TimeService {
     @Override
     public SystemTime getTime() {
         return loadTime();
+    }
+
+    @Override
+    public LocalDateTime now() {
+        SystemTime systemTime = loadTime();
+        assert systemTime != null;
+        Duration d = Duration.between(systemTime.getTimestamp(), LocalDateTime.now());
+        return systemTime.getStartTime().plusMinutes((long) (d.toMinutes() * systemTime.getTimeSpeed()));
     }
 
     private void saveTime(SystemTime systemTime) {
@@ -80,7 +111,12 @@ public class TimeServiceImpl implements TimeService {
             e.printStackTrace();
             logger.errorService("saveTime", systemTime, e.getLocalizedMessage());
         }
-        // TODO 调用排程模块重新计算排程
+
+        // 调用排程模块重新计算排程
+        this.godBlessMe(
+                scheduleService, legacySystemService, orderService, humanService, equipmentService,
+                LocalDateTime.now()
+        );
     }
 
     // return null if time recorded illegal
