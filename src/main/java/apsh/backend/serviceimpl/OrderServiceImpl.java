@@ -3,11 +3,10 @@ package apsh.backend.serviceimpl;
 import apsh.backend.dto.CustomerOrderDto;
 import apsh.backend.enums.OrderStatus;
 import apsh.backend.po.Order;
-<<<<<<< HEAD
-=======
+
 import apsh.backend.po.OrderProduction;
 import apsh.backend.po.SuborderProduction;
->>>>>>> e3bf2b586d0a2ea41da81841fc2e6354ec148a2e
+
 import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.LegacySystemService;
@@ -34,7 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final TimeService timeService;
     private final LegacySystemService legacySystemService;
     private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderServiceImpl.class));
-    
+
     @Autowired
 
     public OrderServiceImpl(
