@@ -16,6 +16,8 @@ public class Order {
     @NonNull
     private String id;
     @NonNull
+    private Boolean urgent;
+    @NonNull
     private Integer needTimeInHour;
     @NonNull
     private Integer needPeopleCount;
@@ -27,7 +29,7 @@ public class Order {
     private List<String> availableDeviceTypeIdList;
 
     public static Order fromDto(OrderDto dto) {
-        return new Order(dto.getId(), dto.getNeedTimeInHour(), dto.getNeedPeopleCount(), dto.getDeadline(),
-                dto.getAvailableManpowerIdList(), dto.getAvailableDeviceTypeIdList());
+        return new Order(dto.getId(), dto.getUrgent(), dto.getNeedTimeInHour(), dto.getNeedPeopleCount(),
+                dto.getDeadline(), dto.getAvailableManpowerIdList(), dto.getAvailableDeviceTypeIdList());
     }
 }

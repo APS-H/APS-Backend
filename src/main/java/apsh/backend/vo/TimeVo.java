@@ -20,9 +20,13 @@ public class TimeVo {
 
     Double flowFactor;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
+    LocalDateTime timestamp;
+
     public TimeVo(SystemTime systemTime) {
         this.startTime = systemTime.getStartTime();
         this.flowFactor = systemTime.getTimeSpeed();
+        this.timestamp = systemTime.getTimestamp();
     }
 
 }
