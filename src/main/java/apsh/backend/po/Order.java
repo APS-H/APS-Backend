@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.lang.reflect.Field;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+
+import static apsh.backend.util.StringUtil.extractNumber;
 
 @Data
 @AllArgsConstructor
@@ -45,22 +46,11 @@ public class Order {
         this.productCount = order.getProductCount();
     }
 
-    public Order(Object o) throws NoSuchFieldException, IllegalAccessException, ParseException {
-        Field f;
-        f=o.getClass().getDeclaredField("number");
-        f.setAccessible(true);
-        this.id= Integer.parseInt((String) f.get(o));
-
-        f=o.getClass().getDeclaredField("itemCode");
-        f.setAccessible(true);
-        this.productId = Integer.parseInt((String) f.get(o));
-
-        f=o.getClass().getDeclaredField("count");
-        f.setAccessible(true);
-        this.productCount = (Integer) f.get(o);
-
-        f=o.getClass().getDeclaredField("date");
-        f.setAccessible(true);
-        this.deliveryDate = new java.sql.Date(new SimpleDateFormat("yyyy/MM/dd").parse((String)f.get(o)).getTime());
+    public Order(apsh.backend.serviceimpl.webservices.order.Order order) throws ParseException {
+        this.id = Integer.valueOf(extractNumber(order.getNumber()));
+        this.productId = Integer.valueOf(extractNumber(order.getItemCode()));
+        this.deliveryDate = new Date(new SimpleDateFormat("yyyy/MM/dd").parse(order.getDate()).getTime());
+        this.productCount = order.getCount();
     }
+
 }

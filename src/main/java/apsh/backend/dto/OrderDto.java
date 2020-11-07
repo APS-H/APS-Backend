@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import apsh.backend.po.Craft;
+import apsh.backend.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -48,9 +49,11 @@ public class OrderDto {
         this.needPeopleCount = craft.getNeedPeopleCount();
         this.deadline = customerOrderDto.getDayOfDelivery();
         this.availableManpowerIdList = craft.getAvailableHumanList().parallelStream()
+                .peek(h -> h.setGroupSize(StringUtil.lastDigit(h.getGroupName())))
                 .flatMap(h -> IntStream.range(0, h.getGroupSize()).mapToObj(id -> h.getGroupName() + id))
                 .collect(Collectors.toList());
         this.availableDeviceTypeIdList = craft.getAvailableEquipmentList().parallelStream()
+                .peek(e -> e.setCount(StringUtil.lastDigit(e.getName())))
                 .flatMap(e -> IntStream.range(0, e.getCount()).mapToObj(id -> e.getName() + id))
                 .collect(Collectors.toList());
     }

@@ -35,19 +35,16 @@ public class OrderServiceImpl implements OrderService {
     private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderServiceImpl.class));
 
     @Autowired
-
     public OrderServiceImpl(
             OrderRepository orderRepository,
             OrderProductionRepository orderProductionRepository,
             TimeService timeService,
             LegacySystemService legacySystemService
     ) {
-
         this.orderRepository = orderRepository;
         this.orderProductionRepository = orderProductionRepository;
         this.timeService = timeService;
         this.legacySystemService = legacySystemService;
-
     }
 
     @Override

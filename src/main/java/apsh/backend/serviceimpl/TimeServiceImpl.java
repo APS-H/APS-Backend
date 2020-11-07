@@ -7,6 +7,7 @@ import apsh.backend.util.LogFormatterImpl;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -36,11 +37,11 @@ public class TimeServiceImpl implements TimeService, GodService {
 
     @Autowired
     public TimeServiceImpl(
-            ScheduleService scheduleService,
-            LegacySystemService legacySystemService,
-            OrderService orderService,
-            HumanService humanService,
-            EquipmentService equipmentService
+            @Lazy ScheduleService scheduleService,
+            @Lazy LegacySystemService legacySystemService,
+            @Lazy OrderService orderService,
+            @Lazy HumanService humanService,
+            @Lazy EquipmentService equipmentService
     ) {
         this.scheduleService = scheduleService;
         this.legacySystemService = legacySystemService;
