@@ -124,8 +124,13 @@ public class LegacySystemServiceImpl implements LegacySystemService {
         ERPServiceService ESS=new ERPServiceService();
         ERPService ES=ESS.getERPServicePort();
         List<Product> crafts=ES.getProductAll();
+        try{
         List<Craft> craftList=crafts.stream().map(Product::getCraft).collect(Collectors.toList());
         return craftList;
+        }catch (java.lang.Exception e){
+            e.printStackTrace();;
+        }
+        return null;
 
     }
 }
