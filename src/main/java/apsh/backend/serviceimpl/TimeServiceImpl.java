@@ -32,6 +32,7 @@ public class TimeServiceImpl implements TimeService {
             logger.errorService("updateTime", systemTime, "startTime and timeSpeed cannot be both null");
             return;
         }
+        systemTime.setTimestamp(LocalDateTime.now());
         saveTime(systemTime);
     }
 
@@ -41,6 +42,7 @@ public class TimeServiceImpl implements TimeService {
             logger.errorService("setTime", systemTime, "startTime or timeSpeed cannot be null");
             return;
         }
+        systemTime.setTimestamp(LocalDateTime.now());
         saveTime(systemTime);
     }
 
@@ -71,7 +73,7 @@ public class TimeServiceImpl implements TimeService {
 
         try {
             PrintWriter pw = new PrintWriter(path.toFile());
-            pw.println(systemTime.getStartTime() + "," + systemTime.getTimeSpeed());
+            pw.println(systemTime.getStartTime() + "," + systemTime.getTimeSpeed() + "," + systemTime.getTimestamp());
             pw.flush();
             pw.close();
         } catch (FileNotFoundException e) {
@@ -102,7 +104,11 @@ public class TimeServiceImpl implements TimeService {
         }
         String[] values = lines.get(0).split(",");
         try {
-            return new SystemTime(LocalDateTime.parse(values[0]), Double.parseDouble(values[1]));
+            return new SystemTime(
+                    LocalDateTime.parse(values[0]),
+                    Double.parseDouble(values[1]),
+                    LocalDateTime.parse(values[2])
+            );
         } catch (Exception ignored) {
             return null;
         }

@@ -18,6 +18,8 @@ public class SystemTime {
 
     private Double timeSpeed;
 
+    private LocalDateTime timestamp;
+
     public SystemTime(TimeVo timeVo) {
         this.startTime = timeVo.getStartTime();
         this.timeSpeed = timeVo.getFlowFactor();

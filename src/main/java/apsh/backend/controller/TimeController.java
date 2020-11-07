@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping(value = "/system-time")
 public class TimeController {
@@ -39,6 +41,7 @@ public class TimeController {
     public TimeVo getTime() {
         logger.infoControllerRequest("POST", "/system-time", null);
         SystemTime systemTime = timeService.getTime();
+        logger.infoControllerResponse("POST", "/system-time", systemTime);
         return new TimeVo(systemTime);
     }
 
