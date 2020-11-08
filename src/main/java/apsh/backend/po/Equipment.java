@@ -56,11 +56,14 @@ public class Equipment {
     }
 
     public Equipment(Object o) throws NoSuchFieldException, IllegalAccessException {
+
         Field f = o.getClass().getDeclaredField("code");
         f.setAccessible(true);
         this.name = (String) f.get(o);
 
-        this.count = 1;
+        f = o.getClass().getDeclaredField("count");
+        f.setAccessible(true);
+        this.count = (int) f.get(o);
         f = o.getClass().getDeclaredField("day");
         f.setAccessible(true);
         String[] result1 = ((String) f.get(o)).split("-");

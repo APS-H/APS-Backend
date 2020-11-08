@@ -1,5 +1,5 @@
 
-package apsh.backend.serviceImpl.LegacySystemWebService;
+package apsh.backend.serviceimpl.LegacySystemWebService;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;

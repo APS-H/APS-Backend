@@ -1,5 +1,5 @@
 
-package apsh.backend.serviceImpl.LegacySystemWebService;
+package apsh.backend.serviceimpl.LegacySystemWebService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,16 +10,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>getProductAllResponse complex typeµÄ Java Àà¡£
+ * <p>getItemAllResponse complex typeï¿½ï¿½ Java ï¿½à¡£
  * 
- * <p>ÒÔÏÂÄ£Ê½Æ¬¶ÎÖ¸¶¨°üº¬ÔÚ´ËÀàÖÐµÄÔ¤ÆÚÄÚÈÝ¡£
+ * <p>ï¿½ï¿½ï¿½ï¿½Ä£Ê½Æ¬ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½Ý¡ï¿½
  * 
  * <pre>
- * &lt;complexType name="getProductAllResponse">
+ * &lt;complexType name="getItemAllResponse">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="return" type="{http://service.legacy.apsh.com/}product" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="return" type="{http://service.legacy.apsh.com/}item" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,13 +29,13 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getProductAllResponse", propOrder = {
+@XmlType(name = "getItemAllResponse", propOrder = {
     "_return"
 })
-public class GetProductAllResponse {
+public class GetItemAllResponse {
 
     @XmlElement(name = "return")
-    protected List<Product> _return;
+    protected List<Item> _return;
 
     /**
      * Gets the value of the return property.
@@ -55,13 +55,13 @@ public class GetProductAllResponse {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Product }
+     * {@link Item }
      * 
      * 
      */
-    public List<Product> getReturn() {
+    public List<Item> getReturn() {
         if (_return == null) {
-            _return = new ArrayList<Product>();
+            _return = new ArrayList<Item>();
         }
         return this._return;
     }

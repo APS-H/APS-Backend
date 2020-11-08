@@ -5,9 +5,9 @@ import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Order;
 import apsh.backend.service.LegacySystemService;
-import apsh.backend.serviceImpl.LegacySystemWebService.ERPService;
-import apsh.backend.serviceImpl.LegacySystemWebService.ERPServiceService;
-import apsh.backend.serviceImpl.LegacySystemWebService.Product;
+import apsh.backend.serviceimpl.LegacySystemWebService.ERPService;
+import apsh.backend.serviceimpl.LegacySystemWebService.ERPServiceService;
+import apsh.backend.serviceimpl.LegacySystemWebService.Product;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.springframework.stereotype.Service;
@@ -99,16 +99,14 @@ public class LegacySystemServiceImpl implements LegacySystemService {
             List<Equipment> allEquipments = new ArrayList<Equipment>();
             Field fieldName = resources.get(0).getClass().getDeclaredField("name");
             fieldName.setAccessible(true);
-            Field fieldCount = resources.get(0).getClass().getDeclaredField("count");
-            fieldCount.setAccessible(true);
+
 
             for (Object o : resources) {
                 if (fieldName.get(o).equals("线体") || fieldName.get(o).equals("设备")) {
-                    int count = (int) fieldCount.get(o);
-                    for (int i = 0; i < count; i++) {
+
                         Equipment equipment = new Equipment(o);
                         allEquipments.add(equipment);
-                    }
+
                 }
             }
             return allEquipments;
@@ -132,5 +130,13 @@ public class LegacySystemServiceImpl implements LegacySystemService {
         }
         return null;
 
+    }
+
+
+
+    public static void main(String args[]){
+        LegacySystemService s=new LegacySystemServiceImpl();
+        List<Equipment> m=s.getAllEquipments();
+        int a=0;
     }
 }

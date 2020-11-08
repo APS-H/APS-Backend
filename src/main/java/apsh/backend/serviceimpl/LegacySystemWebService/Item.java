@@ -1,5 +1,5 @@
 
-package apsh.backend.serviceImpl.LegacySystemWebService;
+package apsh.backend.serviceimpl.LegacySystemWebService;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -7,9 +7,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>item complex type的 Java 类。
+ * <p>item complex type锟斤拷 Java 锟洁。
  * 
- * <p>以下模式片段指定包含在此类中的预期内容。
+ * <p>锟斤拷锟斤拷模式片锟斤拷指锟斤拷锟斤拷锟斤拷锟节达拷锟斤拷锟叫碉拷预锟斤拷锟斤拷锟捷★拷
  * 
  * <pre>
  * &lt;complexType name="item">
@@ -46,7 +46,7 @@ public class Item {
     protected String preparation;
 
     /**
-     * 获取code属性的值。
+     * 锟斤拷取code锟斤拷锟皆碉拷值锟斤拷
      * 
      * @return
      *     possible object is
@@ -58,7 +58,7 @@ public class Item {
     }
 
     /**
-     * 设置code属性的值。
+     * 锟斤拷锟斤拷code锟斤拷锟皆碉拷值锟斤拷
      * 
      * @param value
      *     allowed object is
@@ -70,7 +70,7 @@ public class Item {
     }
 
     /**
-     * 获取description属性的值。
+     * 锟斤拷取description锟斤拷锟皆碉拷值锟斤拷
      * 
      * @return
      *     possible object is
@@ -82,7 +82,7 @@ public class Item {
     }
 
     /**
-     * 设置description属性的值。
+     * 锟斤拷锟斤拷description锟斤拷锟皆碉拷值锟斤拷
      * 
      * @param value
      *     allowed object is
@@ -94,7 +94,7 @@ public class Item {
     }
 
     /**
-     * 获取attribute属性的值。
+     * 锟斤拷取attribute锟斤拷锟皆碉拷值锟斤拷
      * 
      * @return
      *     possible object is
@@ -106,7 +106,7 @@ public class Item {
     }
 
     /**
-     * 设置attribute属性的值。
+     * 锟斤拷锟斤拷attribute锟斤拷锟皆碉拷值锟斤拷
      * 
      * @param value
      *     allowed object is
@@ -118,7 +118,7 @@ public class Item {
     }
 
     /**
-     * 获取unit属性的值。
+     * 锟斤拷取unit锟斤拷锟皆碉拷值锟斤拷
      * 
      * @return
      *     possible object is
@@ -130,7 +130,7 @@ public class Item {
     }
 
     /**
-     * 设置unit属性的值。
+     * 锟斤拷锟斤拷unit锟斤拷锟皆碉拷值锟斤拷
      * 
      * @param value
      *     allowed object is
@@ -142,7 +142,7 @@ public class Item {
     }
 
     /**
-     * 获取preparation属性的值。
+     * 锟斤拷取preparation锟斤拷锟皆碉拷值锟斤拷
      * 
      * @return
      *     possible object is
@@ -154,7 +154,7 @@ public class Item {
     }
 
     /**
-     * 设置preparation属性的值。
+     * 锟斤拷锟斤拷preparation锟斤拷锟皆碉拷值锟斤拷
      * 
      * @param value
      *     allowed object is

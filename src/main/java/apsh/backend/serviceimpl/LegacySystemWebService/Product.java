@@ -1,10 +1,9 @@
 
-package apsh.backend.serviceImpl.LegacySystemWebService;
+package apsh.backend.serviceimpl.LegacySystemWebService;
 
 import apsh.backend.po.Craft;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
 
 import java.util.ArrayList;
 import java.util.List;

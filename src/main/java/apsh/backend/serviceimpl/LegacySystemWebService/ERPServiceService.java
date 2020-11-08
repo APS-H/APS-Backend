@@ -1,5 +1,5 @@
 
-package apsh.backend.serviceImpl.LegacySystemWebService;
+package apsh.backend.serviceimpl.LegacySystemWebService;
 
 import java.net.MalformedURLException;
 import java.net.URL;
