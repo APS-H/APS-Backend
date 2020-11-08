@@ -240,14 +240,12 @@ public class ScheduleServiceImpl implements ScheduleService {
      * 生成所有的时间粒度
      */
     private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime) {
-        Date timeGrainRange = startTime;
+        int totalNeedHours = 0;
         for (Order order : orders)
-            if (order.getDeadline().after(timeGrainRange))
-                timeGrainRange = order.getDeadline();
+            totalNeedHours += order.getNeedTimeInHour();
         // 延迟系数
-        int factor = 3;
-        int availableTimeInHour = (int) ((timeGrainRange.getTime() - startTime.getTime()) / millisecondCountPerHour)
-                * factor;
+        int factor = 4;
+        int availableTimeInHour = totalNeedHours * factor;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
         for (int i = 0; i < availableTimeInHour; i++)
             timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
