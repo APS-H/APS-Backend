@@ -37,7 +37,15 @@ public class EquipmentDto {
         this.deviceId = equipment.getId();
         this.name = equipment.getName();
         this.count = equipment.getCount();
-        this.shift = ShiftType.valueOf(equipment.getDailySchedule().getName());
+        String value = equipment.getDailySchedule().getName().trim();
+        if ("早班".equals(value)) {
+            this.shift = ShiftType.DAY_SHIFT;
+        } else if ("晚班".equals(value)) {
+            this.shift = ShiftType.NIGHT_SHIFT;
+        } else {
+            this.shift = ShiftType.ALL_DAY_SHIFT;
+        }
+//        this.shift = ShiftType.valueOf(equipment.getDailySchedule().getName());
         this.workDay = Arrays.stream(equipment.getWeeklySchedule().split(","))
                 .map(Integer::valueOf).collect(Collectors.toList());
 

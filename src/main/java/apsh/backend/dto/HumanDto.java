@@ -39,7 +39,15 @@ public class HumanDto {
         this.humanId = human.getId();
         this.teamName = human.getGroupName();
         this.count = human.getGroupSize();
-        this.shift = ShiftType.valueOf(human.getDailySchedule().getName());
+        String value = human.getDailySchedule().getName().trim();
+        if ("早班".equals(value)) {
+            this.shift = ShiftType.DAY_SHIFT;
+        } else if ("晚班".equals(value)) {
+            this.shift = ShiftType.NIGHT_SHIFT;
+        } else {
+            this.shift = ShiftType.ALL_DAY_SHIFT;
+        }
+//        this.shift = ShiftType.valueOf(human.getDailySchedule().getName().trim());
         this.workDay = Arrays.stream(human.getWeeklySchedule().split(","))
                 .map(Integer::valueOf)
                 .collect(Collectors.toList());

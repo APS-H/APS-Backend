@@ -1,9 +1,9 @@
 # successful request
-PUT http://localhost:8080/system-time/
+PUT {{hostAndPort}}/system-time/
 Content-Type: application/json
 
 {
-  "startTime": "2020-11-11 12:00",
+  "startTime": "2017-06-11 12:00",
   "flowFactor": 2.0
 }
 
@@ -14,16 +14,16 @@ Content-Type: application/json
 #   "startTime": "2020-11-11 12:00",
 #   "flowFactor": 2.0
 # }
-GET http://localhost:8080/system-time/
+GET {{hostAndPort}}/system-time/
 
 ###########
 
 # successful update
-POST http://localhost:8080/system-time
+POST {{hostAndPort}}/system-time
 Content-Type: application/json
 
 {
-  "startTime": "2020-11-10 12:00"
+  "startTime": "2017-06-10 12:00"
 }
 
 ###########
@@ -33,12 +33,12 @@ Content-Type: application/json
 #   "startTime": "2020-11-10 12:00",
 #   "flowFactor": 2.0
 # }
-GET http://localhost:8080/system-time/
+GET {{hostAndPort}}/system-time/
 
 ###########
 
 # failed request
-PUT http://localhost:8080/system-time/
+PUT {{hostAndPort}}/system-time/
 Content-Type: application/json
 
 {
@@ -48,7 +48,7 @@ Content-Type: application/json
 ###########
 
 # failed update
-POST http://localhost:8080/system-time
+POST {{hostAndPort}}/system-time
 Content-Type: application/json
 
 {}
@@ -60,4 +60,4 @@ Content-Type: application/json
 #   "startTime": "2020-11-10 12:00",
 #   "flowFactor": 2.0
 # }
-GET http://localhost:8080/system-time/
+GET {{hostAndPort}}/system-time/

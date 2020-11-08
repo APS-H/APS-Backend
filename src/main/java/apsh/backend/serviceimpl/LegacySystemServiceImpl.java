@@ -5,9 +5,17 @@ import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Order;
 import apsh.backend.service.LegacySystemService;
+<<<<<<< HEAD
 import apsh.backend.serviceimpl.LegacySystemWebService.ERPService;
 import apsh.backend.serviceimpl.LegacySystemWebService.ERPServiceService;
 import apsh.backend.serviceimpl.LegacySystemWebService.Product;
+=======
+import apsh.backend.serviceimpl.webservices.ERPService;
+import apsh.backend.serviceimpl.webservices.ERPServiceService;
+import apsh.backend.serviceimpl.webservices.Product;
+import apsh.backend.serviceimpl.webservices.order.OrderService;
+import apsh.backend.serviceimpl.webservices.order.OrderServiceService;
+>>>>>>> 839edd724a962fe00e52667aa4c4b124723264c2
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.springframework.stereotype.Service;
@@ -22,29 +30,24 @@ import java.util.stream.Collectors;
 @Service
 public class LegacySystemServiceImpl implements LegacySystemService {
 
-
     private final static String orderServiceUrl = "http://81.69.252.233:9001/order?wsdl";
     private final static String erpServiceUrl = "http://81.69.252.233:9003/erp?wsdl";
 
-
     @Override
     public List<Order> getAllOrders() {
-        JaxWsDynamicClientFactory dcf = JaxWsDynamicClientFactory.newInstance();
-        Client client = dcf.createClient(orderServiceUrl);
+        OrderServiceService oss = new OrderServiceService();
+        OrderService os = oss.getOrderServicePort();
+        List<apsh.backend.serviceimpl.webservices.order.Order> orders = os.getOrderAll();
         try {
-            // invoke("方法名",参数1,参数2,参数3....);
-            Object[] objects = client.invoke("getOrderAll");
-            List<Object> orders = (List) (objects[0]);
-            return orders.stream().map(o -> {
-                Order order = null;
+            return orders.parallelStream().map(order -> {
                 try {
-                    order = new Order(o);
-                } catch (NoSuchFieldException | IllegalAccessException | ParseException e) {
+                    return new Order(order);
+                } catch (ParseException e) {
                     e.printStackTrace();
+                    return null;
                 }
-                return order;
-            }).collect(Collectors.toList());
-        } catch (java.lang.Exception e) {
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -104,8 +107,10 @@ public class LegacySystemServiceImpl implements LegacySystemService {
             for (Object o : resources) {
                 if (fieldName.get(o).equals("线体") || fieldName.get(o).equals("设备")) {
 
+
                         Equipment equipment = new Equipment(o);
                         allEquipments.add(equipment);
+
 
                 }
             }
@@ -116,27 +121,20 @@ public class LegacySystemServiceImpl implements LegacySystemService {
         return null;
     }
 
-
     @Override
     public List<Craft> getAllCrafts() {
-        ERPServiceService ESS=new ERPServiceService();
-        ERPService ES=ESS.getERPServicePort();
-        List<Product> crafts=ES.getProductAll();
-        try{
-        List<Craft> craftList=crafts.stream().map(Product::getCraft).collect(Collectors.toList());
-        return craftList;
-        }catch (java.lang.Exception e){
-            e.printStackTrace();;
+        ERPServiceService ESS = new ERPServiceService();
+        ERPService ES = ESS.getERPServicePort();
+        List<Product> crafts = ES.getProductAll();
+        try {
+            return crafts.stream().map(Product::getCraft).collect(Collectors.toList());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
-
     }
 
 
 
-    public static void main(String args[]){
-        LegacySystemService s=new LegacySystemServiceImpl();
-        List<Equipment> m=s.getAllEquipments();
-        int a=0;
-    }
+
 }

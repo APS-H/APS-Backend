@@ -17,8 +17,10 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
-    public Shift getShift(String name) {
-        return shiftRepository.findByName(name).orElse(null);
+    public Shift getShift(int id) {
+        // TODO : fetch shifts from legacy system
+        System.out.println("getShift: id=" + id);
+        return shiftRepository.findById(id).get();
     }
 
 }

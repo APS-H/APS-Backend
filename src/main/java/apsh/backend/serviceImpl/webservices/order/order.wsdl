@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://service.legacy.apsh.com/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="OrderServiceService" targetNamespace="http://service.legacy.apsh.com/">
+  <wsdl:types>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://service.legacy.apsh.com/" elementFormDefault="unqualified" targetNamespace="http://service.legacy.apsh.com/" version="1.0">
+
+  <xs:element name="getOrderAll" type="tns:getOrderAll"/>
+
+  <xs:element name="getOrderAllResponse" type="tns:getOrderAllResponse"/>
+
+  <xs:element name="getOrderById" type="tns:getOrderById"/>
+
+  <xs:element name="getOrderByIdResponse" type="tns:getOrderByIdResponse"/>
+
+  <xs:complexType name="getOrderById">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getOrderByIdResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="tns:order"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="order">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="number" type="xs:string"/>
+      <xs:element minOccurs="0" name="itemCode" type="xs:string"/>
+      <xs:element minOccurs="0" name="count" type="xs:int"/>
+      <xs:element minOccurs="0" name="date" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getOrderAll">
+    <xs:sequence/>
+  </xs:complexType>
+
+  <xs:complexType name="getOrderAllResponse">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="tns:order"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
+  </wsdl:types>
+  <wsdl:message name="getOrderById">
+    <wsdl:part element="tns:getOrderById" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getOrderAllResponse">
+    <wsdl:part element="tns:getOrderAllResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getOrderAll">
+    <wsdl:part element="tns:getOrderAll" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getOrderByIdResponse">
+    <wsdl:part element="tns:getOrderByIdResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="OrderService">
+    <wsdl:operation name="getOrderById">
+      <wsdl:input message="tns:getOrderById" name="getOrderById">
+    </wsdl:input>
+      <wsdl:output message="tns:getOrderByIdResponse" name="getOrderByIdResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getOrderAll">
+      <wsdl:input message="tns:getOrderAll" name="getOrderAll">
+    </wsdl:input>
+      <wsdl:output message="tns:getOrderAllResponse" name="getOrderAllResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="OrderServiceServiceSoapBinding" type="tns:OrderService">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getOrderById">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getOrderById">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getOrderByIdResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getOrderAll">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getOrderAll">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getOrderAllResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="OrderServiceService">
+    <wsdl:port binding="tns:OrderServiceServiceSoapBinding" name="OrderServicePort">
+      <soap:address location="http://81.69.252.233:9001/order"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
