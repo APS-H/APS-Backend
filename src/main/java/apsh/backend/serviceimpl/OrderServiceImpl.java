@@ -1,14 +1,16 @@
 package apsh.backend.serviceimpl;
 
 import apsh.backend.dto.CustomerOrderDto;
+import apsh.backend.dto.DeviceDto;
+import apsh.backend.dto.ManpowerDto;
+import apsh.backend.dto.OrderDto;
 import apsh.backend.enums.OrderStatus;
+import apsh.backend.po.Craft;
 import apsh.backend.po.Order;
 import apsh.backend.po.SuborderProduction;
 import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.repository.OrderRepository;
-import apsh.backend.service.LegacySystemService;
-import apsh.backend.service.OrderService;
-import apsh.backend.service.TimeService;
+import apsh.backend.service.*;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
 import apsh.backend.vo.OrderProgressVo;
@@ -16,27 +18,38 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl implements OrderService, GodService {
+
+    private final ScheduleService scheduleService;
+    private final LegacySystemService legacySystemService;
+    private final HumanService humanService;
+    private final EquipmentService equipmentService;
+    private final TimeService timeService;
 
     private final OrderRepository orderRepository;
     private final OrderProductionRepository orderProductionRepository;
-    private final TimeService timeService;
-    private final LegacySystemService legacySystemService;
+
     private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderServiceImpl.class));
 
     @Autowired
     public OrderServiceImpl(
-            OrderRepository orderRepository,
-            OrderProductionRepository orderProductionRepository,
+            ScheduleService scheduleService,
+            HumanService humanService,
+            EquipmentService equipmentService,
             TimeService timeService,
-            LegacySystemService legacySystemService
+            LegacySystemService legacySystemService,
+            OrderRepository orderRepository,
+            OrderProductionRepository orderProductionRepository
     ) {
+        this.scheduleService = scheduleService;
+        this.humanService = humanService;
+        this.equipmentService = equipmentService;
         this.orderRepository = orderRepository;
         this.orderProductionRepository = orderProductionRepository;
         this.timeService = timeService;
@@ -121,9 +134,17 @@ public class OrderServiceImpl implements OrderService {
 
     public void add(CustomerOrderDto order) {
         logger.infoService("add", order);
+
+        // 用于排程算法调用，不包含插入的新订单
+        List<CustomerOrderDto> customerOrderDtos = this.getAll(Integer.MAX_VALUE, 1);
+
+        // 持久化新插入的订单
         Order o = new Order(order);
         o.setIsDeleted(Order.NOT_DELETED);
         this.orderRepository.saveAndFlush(o);
+
+        // 调用排程模块紧急插单，重新计算排程
+        this.godBlessMeAgain(scheduleService, order);
     }
 
     @Override
@@ -151,5 +172,60 @@ public class OrderServiceImpl implements OrderService {
         Order o = orderOptional.orElseGet(Order::new);
         o.setIsDeleted(Order.DELETED);
         this.orderRepository.saveAndFlush(o);
+    }
+
+    @Override
+    public Map<String, Craft> prepareCrafts() {
+        return legacySystemService.getAllCrafts().parallelStream()
+                .collect(Collectors.toMap(Craft::getProductionId, c -> c));
+    }
+
+    @Override
+    public List<ManpowerDto> prepareManPowers() {
+        return humanService.getAll(Integer.MAX_VALUE, 1).parallelStream()
+                .map(ManpowerDto::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DeviceDto> prepareDevices() {
+        return equipmentService.getAll(Integer.MAX_VALUE, 1).parallelStream()
+                .flatMap(e -> IntStream.range(0, e.getCount()).mapToObj(id -> new DeviceDto(id, e)))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OrderDto> prepareOrders() {
+        Map<String, Craft> crafts = prepareCrafts();
+        return getAll(Integer.MAX_VALUE, 1).parallelStream()
+                .map(o -> {
+                    Craft craft = crafts.get(String.valueOf(o.getProductId()));
+                    if (craft == null) {
+                        // 说明该订单生产的物料没有对应的工艺，直接去掉该订单
+                        return null;
+                    }
+                    return new OrderDto(o, craft);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Date schedulingInsertTime() {
+        // 获取系统当前时间
+        LocalDateTime now = timeService.now();
+        // 插单时间
+        return Date.from(LocalDateTime.of(now.toLocalDate(), LocalTime.of(now.getHour(), 0))
+                .atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    @Override
+    public Date schedulingStartTime() {
+        // 获取设置的系统初始时间
+        LocalDateTime start = timeService.getTime().getStartTime();
+        // 排程起始时间
+        return Date.from(LocalDateTime.of(start.toLocalDate(), LocalTime.of(start.getHour(), 0))
+                .atZone(ZoneId.systemDefault()).toInstant());
+
     }
 }
