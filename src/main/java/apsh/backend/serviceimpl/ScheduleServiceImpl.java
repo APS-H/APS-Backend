@@ -38,7 +38,10 @@ import apsh.backend.serviceimpl.scheduleservice.TimeSection;
 
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
-    static Long millisecondCountPerHour = 60L * 60L * 1000L;
+    static final Long millisecondCountPerHour = 60L * 60L * 1000L;
+
+    // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
+    static final int maxSuborderNeedTimeInHour = 6;
 
     @Autowired
     private OrderProductionRepository orderProductionRepository;
@@ -79,7 +82,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
-                                     List<OrderDto> orderDtos, Date startTime) {
+            List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
         List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
@@ -91,11 +94,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         solutionDto = null;
         stateJobSubmitted = true;
         stateSolutionSaved = false;
-
-        System.out.println("============================================================");
-        System.out.println("============================================================");
-        System.out.println("============================================================");
-        System.out.println("============================================================");
 
         List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, startTime);
 
@@ -112,7 +110,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-                                   OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
         if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
         // 如果结果没有保存说明排程可能正在运行
@@ -249,18 +247,17 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (Order order : orders)
             totalNeedHours += order.getNeedTimeInHour();
         // 延迟系数
-        int factor = 4;
-        int availableTimeInHour = totalNeedHours * factor;
+        float factor = 0.35f;
+        int availableTimeInHour = (int) (totalNeedHours / maxSuborderNeedTimeInHour * factor) + 5;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
         for (int i = 0; i < availableTimeInHour; i++)
-            timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
+            timeGrains.add(new TimeGrain(i,
+                    new Date(startTime.getTime() + i * maxSuborderNeedTimeInHour * millisecondCountPerHour)));
         return timeGrains;
     }
 
     private List<Suborder> splitOrders(List<Order> orders, Date startTime, boolean urgent) {
         // 划分子订单
-        // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-        int maxSuborderNeedTimeInHour = 3;
         List<Suborder> suborders = new ArrayList<>(orders.size());
         for (Order order : orders) {
             int suborderIndex = 0;

@@ -20,7 +20,7 @@ public interface GodService {
 
     // 愿主保佑，排程算法一切顺利！
     default void godBlessMe(ScheduleService scheduleService) {
-        new Thread(() -> {
+        // new Thread(() -> {
             // 调用排程模块重新计算排程
             scheduleService.removeCurrentArrangement();
             List<ManpowerDto> manpowerDtos = prepareManPowers();
@@ -36,7 +36,7 @@ public interface GodService {
                     orderDtos,
                     schedulingStartTime()
             );
-        }).start();
+        // }).start();
     }
 
     // 调用排程模块紧急插单，重新计算排程
