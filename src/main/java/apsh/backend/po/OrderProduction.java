@@ -1,9 +1,6 @@
 package apsh.backend.po;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -16,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
+import apsh.backend.vo.OrderInOrderProgressVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -50,6 +48,25 @@ public class OrderProduction {
 
             return DateUtils.isSameDay(date, date1) && DateUtils.isSameDay(date, date2);
         }).collect(Collectors.toList());
+
+    }
+
+
+    public OrderInOrderProgressVo getOrderInOrderProgress(Date date){
+        List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
+       origin=origin.stream().sorted((t1, t2) -> t2.getStartTime().isAfter(t1.getStartTime())).collect(Collectors.toList());
+
+       long total=origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream().mapToLong(o->o).sum();
+
+       long work= origin.stream().filter(s -> {
+            //Date date1 = Date.from(s.getStartTime());
+            Date date2 = Date.from(s.getEndTime());
+            return date.compareTo(date2)>=0;
+        }).collect(Collectors.toList())
+        .stream().mapToLong(o->o.getWorkTime()).sum();
+
+       OrderInOrderProgressVo OIPVO=new OrderInOrderProgressVo(String.valueOf(id),work/total,1.0,false);
+       return OIPVO;
 
     }
 }
