@@ -14,7 +14,7 @@ public class SuborderSolutionEasyScoreCalculator implements EasyScoreCalculator<
         for (int i = 0; i < schedule.getSuborders().size(); i++) {
             Suborder a = schedule.getSuborders().get(i);
             // 插单不能延期
-            if (a.getTimeGrain() != null
+            if (a.getUrgent() && a.getTimeGrain() != null
                     && a.getTimeGrain().getIndex() + a.getNeedTimeInHour() > a.getDeadlineTimeGrainIndex())
                 hardScore--;
 
