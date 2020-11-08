@@ -1,5 +1,9 @@
 package apsh.backend.enums;
 
+import apsh.backend.po.Shift;
+
+import java.sql.Time;
+
 public enum ShiftType {
     // 早班
     DAY_SHIFT("早班"),
@@ -37,5 +41,44 @@ public enum ShiftType {
         } else if ("晚班".equals(value)) {
             return 1;
         } else return 2;
+    }
+
+    public Shift getShift(String values) {
+        if ("早班".equals(values)) {
+            Shift s = new Shift();
+            s.setName(values);
+            s.setStartTime(new Time(0, 0, 0));
+            s.setEndTime(new Time(24, 0, 0));
+            return s;
+        } else if ("晚班".equals(values)) {
+            Shift s = new Shift();
+            s.setName(values);
+            s.setStartTime(new Time(19, 0, 0));
+            s.setEndTime(new Time(7, 0, 0));
+            return s;
+        } else {
+            Shift s = new Shift();
+            s.setName(values);
+            s.setStartTime(new Time(7, 0, 0));
+            s.setEndTime(new Time(19, 0, 0));
+            return s;
+        }
+    }
+
+    public Shift getShift() {
+        Shift s = new Shift();
+        s.setName(value);
+        if ("早班".equals(value())) {
+            s.setStartTime(new Time(0, 0, 0));
+            s.setEndTime(new Time(24, 0, 0));
+        } else if ("晚班".equals(value())) {
+            s.setStartTime(new Time(19, 0, 0));
+            s.setEndTime(new Time(7, 0, 0));
+            return s;
+        } else {
+            s.setStartTime(new Time(7, 0, 0));
+            s.setEndTime(new Time(19, 0, 0));
+        }
+        return s;
     }
 }

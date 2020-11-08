@@ -1,5 +1,6 @@
 package apsh.backend.service;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,38 +19,83 @@ import apsh.backend.dto.TimeSectionDto;
 
 @SpringBootTest
 public class ScheduleServiceTest {
-    @Autowired
-    ScheduleService service;
+        @Autowired
+        ScheduleService service;
 
-    @Test
-    void testGetArrangement() {
-        List<ManpowerDto> manpowerDtos = new ArrayList<>();
-        manpowerDtos.add(new ManpowerDto("man1", 5, Arrays.asList(new TimeSectionDto(7, 19))));
-        manpowerDtos.add(new ManpowerDto("man2", 5, Arrays.asList(new TimeSectionDto(7, 19))));
-        manpowerDtos
-                .add(new ManpowerDto("man3", 5, Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
-        manpowerDtos
-                .add(new ManpowerDto("man4", 5, Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
-        List<DeviceDto> deviceDtos = new ArrayList<>();
-        deviceDtos.add(new DeviceDto("dev1", "line1"));
-        deviceDtos.add(new DeviceDto("dev2", "line1"));
-        deviceDtos.add(new DeviceDto("dev3", "line2"));
-        deviceDtos.add(new DeviceDto("dev4", "line2"));
-        List<OrderDto> orderDtos = new ArrayList<>();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-        try {
-            Date startTime = dateFormat.parse("2020-11-01 11");
-            orderDtos.add(new OrderDto("1", 4, 7, dateFormat.parse("2020-11-02 09"), Arrays.asList("man1", "man2"),
-                    Arrays.asList("line1")));
-            orderDtos.add(new OrderDto("2", 4, 8, dateFormat.parse("2020-11-02 12"), Arrays.asList("man2", "man4"),
-                    Arrays.asList("line2")));
-            orderDtos.add(new OrderDto("3", 4, 6, dateFormat.parse("2020-11-02 14"), Arrays.asList("man3", "man4"),
-                    Arrays.asList("line1", "line2")));
-            service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
-            List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
-            System.out.println(orderProductionDtos.size());
-        } catch (Exception e) {
-            e.printStackTrace();
+        @Test
+        void testGetArrangement() throws ParseException {
+                List<ManpowerDto> manpowerDtos = new ArrayList<>();
+                manpowerDtos.add(new ManpowerDto("man1", 5, Arrays.asList(new TimeSectionDto(7, 19))));
+                manpowerDtos.add(new ManpowerDto("man2", 5, Arrays.asList(new TimeSectionDto(7, 19))));
+                manpowerDtos.add(new ManpowerDto("man3", 5,
+                                Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
+                manpowerDtos.add(new ManpowerDto("man4", 5,
+                                Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
+                List<DeviceDto> deviceDtos = new ArrayList<>();
+                deviceDtos.add(new DeviceDto("dev1", "line1"));
+                deviceDtos.add(new DeviceDto("dev2", "line1"));
+                deviceDtos.add(new DeviceDto("dev3", "line2"));
+                deviceDtos.add(new DeviceDto("dev4", "line2"));
+                List<OrderDto> orderDtos = new ArrayList<>();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+                Date startTime = dateFormat.parse("2020-11-01 11");
+                orderDtos.add(new OrderDto("1", false, 4, 7, dateFormat.parse("2020-11-02 09"),
+                                Arrays.asList("man1", "man2"), Arrays.asList("line1")));
+                orderDtos.add(new OrderDto("2", false, 4, 8, dateFormat.parse("2020-11-02 12"),
+                                Arrays.asList("man2", "man4"), Arrays.asList("line2")));
+                orderDtos.add(new OrderDto("3", false, 4, 6, dateFormat.parse("2020-11-02 14"),
+                                Arrays.asList("man3", "man4"), Arrays.asList("line1", "line2")));
+                service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
+                List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
+                System.out.println(orderProductionDtos.size());
+                assert(orderProductionDtos.size() >= 3);
         }
-    }
+
+        @Test
+        void testGetArrangementPersistence() {
+                try {
+                        List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
+                        System.out.println(orderProductionDtos.size());
+                } catch (Exception e) {
+                        e.printStackTrace();
+                }
+        }
+
+        @Test
+        void testGetArrangementUrgentOrder() throws ParseException {
+                // 初始排程
+                List<ManpowerDto> manpowerDtos = new ArrayList<>();
+                manpowerDtos.add(new ManpowerDto("man1", 5, Arrays.asList(new TimeSectionDto(7, 19))));
+                manpowerDtos.add(new ManpowerDto("man2", 5, Arrays.asList(new TimeSectionDto(7, 19))));
+                manpowerDtos.add(new ManpowerDto("man3", 5,
+                                Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
+                manpowerDtos.add(new ManpowerDto("man4", 5,
+                                Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
+                List<DeviceDto> deviceDtos = new ArrayList<>();
+                deviceDtos.add(new DeviceDto("dev1", "line1"));
+                deviceDtos.add(new DeviceDto("dev2", "line1"));
+                deviceDtos.add(new DeviceDto("dev3", "line2"));
+                deviceDtos.add(new DeviceDto("dev4", "line2"));
+                List<OrderDto> orderDtos = new ArrayList<>();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+                Date startTime = dateFormat.parse("2020-11-01 11");
+                orderDtos.add(new OrderDto("1", false, 4, 7, dateFormat.parse("2020-11-02 09"),
+                                Arrays.asList("man1", "man2"), Arrays.asList("line1")));
+                orderDtos.add(new OrderDto("2", false, 4, 8, dateFormat.parse("2020-11-02 12"),
+                                Arrays.asList("man2", "man4"), Arrays.asList("line2")));
+                orderDtos.add(new OrderDto("3", false, 4, 6, dateFormat.parse("2020-11-02 14"),
+                                Arrays.asList("man3", "man4"), Arrays.asList("line1", "line2")));
+                service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
+                List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
+                System.out.println(orderProductionDtos.size());
+                assert(orderProductionDtos.size() >= 3);
+                // 插入订单
+                OrderDto urgentOrderDto = new OrderDto("4", true, 4, 8, dateFormat.parse("2020-11-02 07"),
+                                Arrays.asList("man1", "man2", "man3"), Arrays.asList("line1", "line2"));
+                service.arrangeUrgentOrder(manpowerDtos, deviceDtos, orderDtos, urgentOrderDto,
+                                dateFormat.parse("2020-11-01 13"), startTime);
+                orderProductionDtos = service.getCurrentArrangment();
+                System.out.println(orderProductionDtos.size());
+                assert(orderProductionDtos.size() >= 4);
+        }
 }

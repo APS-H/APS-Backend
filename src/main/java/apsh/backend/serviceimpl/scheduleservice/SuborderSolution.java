@@ -22,6 +22,9 @@ public class SuborderSolution {
     @Getter
     private Integer startHourOfDay;
 
+    @Getter
+    private List<Suborder> fixedSuborders;
+
     @NonNull
     @ValueRangeProvider(id = "manpowerRange")
     @ProblemFactCollectionProperty

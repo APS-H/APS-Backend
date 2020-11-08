@@ -3,6 +3,7 @@ package apsh.backend.dto;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Shift;
+import apsh.backend.po.SuborderProduction;
 import apsh.backend.vo.ProductInResourceUseVo;
 import apsh.backend.vo.ResourceInResourceLoadVo;
 import apsh.backend.vo.ResourceLoadVo;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 @Data
 @AllArgsConstructor
@@ -41,8 +43,11 @@ public class ResourceDto {
         this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
     }
 
-    public void  addUsedTime(ProductInResourceUseVo usedTime){
-        usedTimeList.add(usedTime);
+    public void  addUsedTime(SuborderProduction SOP,int stock_id){
+        Date date1 = Date.from(SOP.getStartTime());
+        Date date2 = Date.from(SOP.getEndTime());
+        ProductInResourceUseVo newTime=new ProductInResourceUseVo(stock_id,date1,date2,false);
+        usedTimeList.add(newTime);
     }
 
     public ResourceUseVo getResourceUseVo(){

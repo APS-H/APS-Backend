@@ -5,9 +5,13 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.optaplanner.core.api.solver.SolverJob;
 import org.optaplanner.core.api.solver.SolverManager;
@@ -20,6 +24,9 @@ import apsh.backend.dto.DeviceDto;
 import apsh.backend.dto.OrderDto;
 import apsh.backend.dto.OrderProductionDto;
 import apsh.backend.dto.SuborderProductionDto;
+import apsh.backend.po.OrderProduction;
+import apsh.backend.po.SuborderProduction;
+import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.service.ScheduleService;
 import apsh.backend.serviceimpl.scheduleservice.Device;
 import apsh.backend.serviceimpl.scheduleservice.Manpower;
@@ -34,105 +41,163 @@ public class ScheduleServiceImpl implements ScheduleService {
     static Long millisecondCountPerHour = 60L * 60L * 1000L;
 
     @Autowired
+    private OrderProductionRepository orderProductionRepository;
+
+    @Autowired
     private SolverManager<SuborderSolution, UUID> solverManager;
 
-    // 初始排程
-    private List<Manpower> manpowers = null;
-    private List<Device> devices = null;
-    private List<Order> orders = null;
-    // 插单
-    private List<Order> urgentOrders = null;
     // 当前的任务
     private SolverJob<SuborderSolution, UUID> currentSolverJob = null;
-    // 结果 TODO: 持久化
+
+    // 排程结果
     private List<OrderProductionDto> solutionDto;
 
-    // 是否正在排程或排程结束 即添加过排程任务
-    private boolean solvingOrSolved = false;
-    // 当前的排程任务是否已经存储在solutionDto变量中且持久化
-    private boolean solutionSaved = false;
+    // 是否添加过排程任务 排程可能正在进行或排程结束 包括数据库中读取的结果
+    private boolean stateJobSubmitted = false;
+    // 当前的排程任务是否持久化
+    private boolean stateSolutionSaved = false;
+
+    @PostConstruct
+    private void init() {
+        // 载入排程结果
+        solutionDto = new ArrayList<>();
+        List<OrderProduction> orderProductionPos = orderProductionRepository.findAll();
+        if (orderProductionPos.size() == 0)
+            return;
+        for (OrderProduction orderProductionPo : orderProductionPos) {
+            List<SuborderProductionDto> suborderProductionDtos = new ArrayList<>(
+                    orderProductionPo.getSuborderProductions().size());
+            for (SuborderProduction po : orderProductionPo.getSuborderProductions())
+                suborderProductionDtos.add(new SuborderProductionDto(po.getSuborderId(), Date.from(po.getStartTime()),
+                        Date.from(po.getEndTime()), new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
+            OrderProductionDto dto = new OrderProductionDto(orderProductionPo.getOrderId(), suborderProductionDtos);
+            solutionDto.add(dto);
+        }
+        stateJobSubmitted = true;
+        stateSolutionSaved = true;
+    }
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
             List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
-        manpowers = manpowerDtos.stream()
+        List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
                         manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
                 .collect(Collectors.toList());
-        devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
-        orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
-        urgentOrders = new ArrayList<>();
+        List<Device> devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
+        List<Order> orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
         currentSolverJob = null;
         solutionDto = null;
-        solvingOrSolved = true;
-        solutionSaved = false;
+        stateJobSubmitted = true;
+        stateSolutionSaved = false;
 
-        // 生成所有的时间粒度
-        Date timeGrainRange = startTime;
-        for (Order order : orders)
-            if (order.getDeadline().after(timeGrainRange))
-                timeGrainRange = order.getDeadline();
-        // 延迟系数
-        int factor = 5;
-        int availableTimeInHour = (int) ((timeGrainRange.getTime() - startTime.getTime()) / millisecondCountPerHour)
-                * factor;
-        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
-        for (int i = 0; i < availableTimeInHour; i++)
-            timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
 
-        // 划分子订单
-        // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-        int maxSuborderNeedTimeInHour = 3;
-        List<Suborder> suborders = new ArrayList<>(orders.size());
-        for (Order order : orders) {
-            int suborderIndex = 0;
-            int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
-                    / millisecondCountPerHour);
-            int remainTimeInHour = order.getNeedTimeInHour();
-            while (remainTimeInHour > 0) {
-                suborders.add(Suborder.create(order, suborderIndex++,
-                        Math.min(maxSuborderNeedTimeInHour, remainTimeInHour), ddlTimeGrainIndex));
-                remainTimeInHour -= maxSuborderNeedTimeInHour;
-            }
-        }
+        List<Suborder> suborders = splitOrders(orders, startTime, false);
 
         // 调用排程库
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
-        SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), manpowers,
-                devices, timeGrains, suborders, null);
+        SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), new ArrayList<>(),
+                manpowers, devices, timeGrains, suborders, null);
         UUID problemId = UUID.randomUUID();
         currentSolverJob = solverManager.solve(problemId, solution);
     }
 
     @Override
-    public void arrangeUrgentOrder(OrderDto orderDto, Date insertTime) {
-        if (!solvingOrSolved)
+    public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
+            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+        if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
-        if (currentSolverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
-            throw new RuntimeException("请等待上一次排程结束");
-        // 确保上一次排程被保存
-        tryGetCurrentArrangement();
-        // 维护状态
-        urgentOrders.add(new Order(orderDto.getId(), orderDto.getNeedTimeInHour(), orderDto.getNeedPeopleCount(),
-                orderDto.getDeadline(), orderDto.getAvailableManpowerIdList(),
-                orderDto.getAvailableDeviceTypeIdList()));
-        // TODO: 重新排程
+        // 如果结果没有保存说明排程可能正在运行
+        if (!stateSolutionSaved) {
+            if (currentSolverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
+                throw new RuntimeException("请等待上一次排程结束");
+            // 确保能读取上一次排程结果
+            tryGetCurrentArrangement();
+        }
+        // 初始化状态
+        List<Manpower> manpowers = manpowerDtos.stream()
+                .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
+                        manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
+                .collect(Collectors.toList());
+        List<Device> devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
+        List<Order> orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
+        Order urgentOrder = Order.fromDto(urgentOrderDto);
+        orders.add(urgentOrder);
+        stateSolutionSaved = false;
+
+        // 根据插单时间划分之前排程结果的子订单
+        HashMap<String, Order> orderMap = new HashMap<>();
+        for (Order order : orders)
+            orderMap.put(order.getId(), order);
+        HashMap<String, Manpower> manpowerMap = new HashMap<>();
+        for (Manpower manpower : manpowers)
+            manpowerMap.put(manpower.getId(), manpower);
+        HashMap<String, Device> deviceMap = new HashMap<>();
+        for (Device device : devices)
+            deviceMap.put(device.getId(), device);
+        List<Suborder> urgentSuborder = splitOrders(Arrays.asList(urgentOrder), insertTime, true);
+        List<Suborder> fixedSuborders = new ArrayList<>();
+        List<Suborder> dirtySuborders = new ArrayList<>();
+        for (OrderProductionDto orderProductionDto : solutionDto)
+            for (SuborderProductionDto dto : orderProductionDto.getSuborders()) {
+                String orderId = orderProductionDto.getId();
+                Order order = orderMap.get(orderId);
+                Suborder suborder = new Suborder();
+                suborder.setId(dto.getId());
+                suborder.setOrderId(orderId);
+                suborder.setUrgent(order.getUrgent());
+                suborder.setNeedTimeInHour(
+                        (int) ((dto.getEndTime().getTime() - dto.getStartTime().getTime()) / millisecondCountPerHour));
+                suborder.setNeedPeopleCount(order.getNeedPeopleCount());
+                suborder.setAvailableManpowerIdList(order.getAvailableManpowerIdList());
+                suborder.setAvailableDeviceTypeIdList(order.getAvailableDeviceTypeIdList());
+                int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
+                        / millisecondCountPerHour);
+                suborder.setDeadlineTimeGrainIndex(ddlTimeGrainIndex);
+                if (dto.getStartTime().after(insertTime))
+                    // 需要重新排程
+                    dirtySuborders.add(suborder);
+                else {
+                    // 使用之前的结果
+                    suborder.setManpowerA(manpowerMap.get(dto.getManpowerIds().get(0)));
+                    if (dto.getManpowerIds().size() > 1)
+                        suborder.setManpowerB(manpowerMap.get(dto.getManpowerIds().get(1)));
+                    if (dto.getManpowerIds().size() > 2)
+                        suborder.setManpowerC(manpowerMap.get(dto.getManpowerIds().get(2)));
+                    suborder.setDevice(deviceMap.get(dto.getDeviceId()));
+                    fixedSuborders.add(suborder);
+                }
+            }
+
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
+
+        // 重新排程
+        dirtySuborders.addAll(urgentSuborder);
+        // 调用排程库
+        Calendar startTimeCalendar = Calendar.getInstance();
+        startTimeCalendar.setTime(startTime);
+        SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), new ArrayList<>(),
+                manpowers, devices, timeGrains, dirtySuborders, null);
+        UUID problemId = UUID.randomUUID();
+        currentSolverJob = solverManager.solve(problemId, solution);
     }
 
     @Override
     public void removeCurrentArrangement() {
-        solvingOrSolved = false;
-        deleteState();
+        stateJobSubmitted = false;
+        stateSolutionSaved = false;
+        deleteInputAndSolution();
     }
 
     @Override
     public List<OrderProductionDto> tryGetCurrentArrangement() {
-        if (!solvingOrSolved)
+        if (!stateJobSubmitted)
             throw new RuntimeException("还没有输入排程任务");
-        // 已经有保存的历史结果
-        if (solutionSaved)
+        // 已经有结果
+        if (stateSolutionSaved)
             return solutionDto;
         // 已经搜索完成但是没有保存
         if (currentSolverJob.getSolverStatus() == SolverStatus.NOT_SOLVING) {
@@ -143,8 +208,9 @@ public class ScheduleServiceImpl implements ScheduleService {
                 throw new RuntimeException("排程失败 原因未知");
             }
             solutionDto = getSolutionDto(solution);
-            saveState(manpowers, devices, orders, urgentOrders, solutionDto);
-            solutionSaved = true;
+            saveInputAndSolution();
+            stateSolutionSaved = true;
+            return solutionDto;
         }
         // 还没有搜索完成
         return null;
@@ -152,8 +218,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<OrderProductionDto> getCurrentArrangment() {
-        tryGetCurrentArrangement();
-        if (solutionDto != null)
+        if (!stateJobSubmitted)
+            throw new RuntimeException("还没有输入排程任务");
+        // 已经有结果
+        if (stateSolutionSaved)
             return solutionDto;
         // 阻塞
         SuborderSolution solution = null;
@@ -163,21 +231,70 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new RuntimeException("排程失败 原因未知");
         }
         solutionDto = getSolutionDto(solution);
-        saveState(manpowers, devices, orders, urgentOrders, solutionDto);
-        solutionSaved = true;
+        saveInputAndSolution();
+        stateSolutionSaved = true;
         return solutionDto;
+    }
+
+    /**
+     * 生成所有的时间粒度
+     */
+    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime) {
+        Date timeGrainRange = startTime;
+        for (Order order : orders)
+            if (order.getDeadline().after(timeGrainRange))
+                timeGrainRange = order.getDeadline();
+        // 延迟系数
+        int factor = 3;
+        int availableTimeInHour = (int) ((timeGrainRange.getTime() - startTime.getTime()) / millisecondCountPerHour)
+                * factor;
+        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
+        for (int i = 0; i < availableTimeInHour; i++)
+            timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
+        return timeGrains;
+    }
+
+    private List<Suborder> splitOrders(List<Order> orders, Date startTime, boolean urgent) {
+        // 划分子订单
+        // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
+        int maxSuborderNeedTimeInHour = 3;
+        List<Suborder> suborders = new ArrayList<>(orders.size());
+        for (Order order : orders) {
+            int suborderIndex = 0;
+            int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
+                    / millisecondCountPerHour);
+            int remainTimeInHour = order.getNeedTimeInHour();
+            while (remainTimeInHour > 0) {
+                suborders.add(Suborder.create(order, suborderIndex++, urgent,
+                        Math.min(maxSuborderNeedTimeInHour, remainTimeInHour), ddlTimeGrainIndex));
+                remainTimeInHour -= maxSuborderNeedTimeInHour;
+            }
+        }
+        return suborders;
     }
 
     // 根据Solution获取Dto
     private List<OrderProductionDto> getSolutionDto(SuborderSolution solution) {
+        HashSet<String> orderIdSet = new HashSet<>();
+        for (Suborder suborder : solution.getSuborders())
+            orderIdSet.add(suborder.getOrderId());
         List<OrderProductionDto> res = new ArrayList<>();
         HashMap<String, OrderProductionDto> orderProductionDtoMap = new HashMap<>();
-        for (Order order : orders) {
-            OrderProductionDto dto = new OrderProductionDto(order.getId(), new ArrayList<>());
+        for (String orderId : orderIdSet) {
+            OrderProductionDto dto = new OrderProductionDto(orderId, new ArrayList<>());
             res.add(dto);
-            orderProductionDtoMap.put(order.getId(), dto);
+            orderProductionDtoMap.put(orderId, dto);
         }
+
         for (Suborder suborder : solution.getSuborders()) {
+            OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
+            Date startTime = suborder.getTimeGrain().getTime();
+            Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);
+            SuborderProductionDto suborderDto = new SuborderProductionDto(suborder.getId(), startTime, endTime,
+                    suborder.getManpowerIds(), suborder.getDevice().getId());
+            dto.getSuborders().add(suborderDto);
+        }
+        for (Suborder suborder : solution.getFixedSuborders()) {
             OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
             Date startTime = suborder.getTimeGrain().getTime();
             Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);
@@ -188,12 +305,25 @@ public class ScheduleServiceImpl implements ScheduleService {
         return res;
     }
 
-    private void saveState(List<Manpower> manpowers, List<Device> devices, List<Order> orders, List<Order> urgentOrders,
-            List<OrderProductionDto> solutionDto) {
-        // TODO: 持久化
+    /**
+     * 把当前输入和排程结果保存到数据库中
+     */
+    private void saveInputAndSolution() {
+        // TODO: 保存输入
+        List<OrderProduction> orderProductionPos = new ArrayList<>(solutionDto.size());
+        for (OrderProductionDto orderProductionDto : solutionDto) {
+            Set<SuborderProduction> suborderProductionPos = new HashSet<>(orderProductionDto.getSuborders().size());
+            for (SuborderProductionDto dto : orderProductionDto.getSuborders())
+                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), dto.getStartTime().toInstant(),
+                        dto.getEndTime().toInstant(), dto.getManpowerIds(), dto.getDeviceId()));
+            orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(), suborderProductionPos));
+        }
+        orderProductionRepository.deleteAll();
+        orderProductionRepository.saveAll(orderProductionPos);
     }
 
-    private void deleteState() {
-        // TODO: 持久化
+    private void deleteInputAndSolution() {
+        // TODO: 删除输入
+        orderProductionRepository.deleteAll();
     }
 }

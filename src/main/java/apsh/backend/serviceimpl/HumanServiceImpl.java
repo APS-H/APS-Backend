@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,20 +80,20 @@ public class HumanServiceImpl implements HumanService {
         List<Human> incrementHumans = this.humanRepository.findAll();
         List<HumanDto> mergedHumans = merge(legacySystemAllHumans, incrementHumans).parallelStream()
                 .map(HumanDto::new)
-                .sorted((h1, h2) -> h1.getHumanId() < h2.getHumanId() ? 1 : 0)
+                .sorted(Comparator.comparing(HumanDto::getTeamName))
                 .collect(Collectors.toList());
-        int start = pageSize * (pageNum - 1);
-        int end = pageSize * pageNum;
+        int start = Math.max(0, pageSize * (pageNum - 1));
+        int end = Math.min(mergedHumans.size(), pageSize * pageNum);
         return mergedHumans.subList(start, end);
     }
 
     private List<Human> merge(List<Human> legacySystemAllHumans, List<Human> incrementHumans) {
-        Map<Integer, Human> mergedOrders = legacySystemAllHumans.parallelStream().collect(Collectors.toMap(Human::getId, o -> o));
+        Map<String, Human> mergedOrders = legacySystemAllHumans.parallelStream().collect(Collectors.toMap(Human::getGroupName, o -> o));
         incrementHumans.forEach(o -> {
             if (o.getIsDeleted() == Order.DELETED) {
-                mergedOrders.remove(o.getId());
+                mergedOrders.remove(o.getGroupName());
             } else {
-                mergedOrders.put(o.getId(), o);
+                mergedOrders.put(o.getGroupName(), o);
             }
         });
         return mergedOrders.values().parallelStream().collect(Collectors.toList());

@@ -30,7 +30,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: end_time
-                  type: int
+                  type: time
                   constraints:
                     nullable: false
         # 人力资源表
@@ -142,5 +142,122 @@ databaseChangeLog:
                   type: int
                   constraints:
                     nullable: false
-
-
+  - changeSet:
+      id: 2
+      author: bomouhe
+      changes:
+        # 订单生产排程表
+        - createTable:
+            tableName: order_production
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+        # 子订单生产排程表
+        - createTable:
+            tableName: suborder_production
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: suborder_id
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_time
+                  type: time
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_time
+                  type: time
+                  constraints:
+                    nullable: false
+              - column:
+                  name: manpower_ids
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: device_id
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 3
+      author: bomouhe
+      changes:
+        - addColumn:
+            tableName: suborder_production
+            columns:
+              - column:
+                  name: order_production_id
+                  type: int
+                  constraints:
+                    foreignKeyName: "order_production_suborder_production"
+                    references: "order_production(id)"
+  - changeSet:
+      id: 4
+      author: peihongchen
+      comment: "Add shift data to db"
+      changes:
+        - insert:
+            tableName: shifts
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: name
+                  value: "早班"
+              - column:
+                  name: start_time
+                  value: "07:00:00"
+              - column:
+                  name: end_time
+                  value: "19:00:00"
+        - insert:
+            tableName: shifts
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: name
+                  value: "晚班"
+              - column:
+                  name: start_time
+                  value: "19:00:00"
+              - column:
+                  name: end_time
+                  value: "07:00:00"
+        - insert:
+            tableName: shifts
+            columns:
+              - column:
+                  name: id
+                  value: 3
+              - column:
+                  name: name
+                  value: "全天"
+              - column:
+                  name: start_time
+                  value: "00:00:00"
+              - column:
+                  name: end_time
+                  value: "23:59:59"

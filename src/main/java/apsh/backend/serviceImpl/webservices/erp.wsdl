@@ -1,0 +1,316 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://service.legacy.apsh.com/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="ERPServiceService" targetNamespace="http://service.legacy.apsh.com/">
+  <wsdl:types>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://service.legacy.apsh.com/" elementFormDefault="unqualified" targetNamespace="http://service.legacy.apsh.com/" version="1.0">
+
+  <xs:element name="getItemAll" type="tns:getItemAll"/>
+
+  <xs:element name="getItemAllResponse" type="tns:getItemAllResponse"/>
+
+  <xs:element name="getItemByCode" type="tns:getItemByCode"/>
+
+  <xs:element name="getItemByCodeResponse" type="tns:getItemByCodeResponse"/>
+
+  <xs:element name="getProductAll" type="tns:getProductAll"/>
+
+  <xs:element name="getProductAllResponse" type="tns:getProductAllResponse"/>
+
+  <xs:element name="getProductByCode" type="tns:getProductByCode"/>
+
+  <xs:element name="getProductByCodeResponse" type="tns:getProductByCodeResponse"/>
+
+  <xs:element name="getResourceAll" type="tns:getResourceAll"/>
+
+  <xs:element name="getResourceAllResponse" type="tns:getResourceAllResponse"/>
+
+  <xs:element name="getResourceByCode" type="tns:getResourceByCode"/>
+
+  <xs:element name="getResourceByCodeResponse" type="tns:getResourceByCodeResponse"/>
+
+  <xs:complexType name="getItemByCode">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getItemByCodeResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="tns:item"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="item">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="code" type="xs:string"/>
+      <xs:element minOccurs="0" name="description" type="xs:string"/>
+      <xs:element minOccurs="0" name="attribute" type="xs:string"/>
+      <xs:element minOccurs="0" name="unit" type="xs:string"/>
+      <xs:element minOccurs="0" name="preparation" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getProductAll">
+    <xs:sequence/>
+  </xs:complexType>
+
+  <xs:complexType name="getProductAllResponse">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="tns:product"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="product">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="itemCode" type="xs:string"/>
+      <xs:element minOccurs="0" name="ProductTechList">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ProductTech" type="tns:productTech"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="productTech">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="name" type="xs:string"/>
+      <xs:element minOccurs="0" name="employerCount" type="xs:int"/>
+      <xs:element minOccurs="0" name="materialList">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ProductItem" type="tns:productItem"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element minOccurs="0" name="resourceList">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ProductResource" type="tns:productResource"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="productItem">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="code" type="xs:string"/>
+      <xs:element minOccurs="0" name="count" type="xs:double"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="productResource">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="code" type="xs:string"/>
+      <xs:element minOccurs="0" name="name" type="xs:string"/>
+      <xs:element minOccurs="0" name="capacity" type="xs:int"/>
+      <xs:element minOccurs="0" name="changeLineTime" type="xs:double"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getResourceAll">
+    <xs:sequence/>
+  </xs:complexType>
+
+  <xs:complexType name="getResourceAllResponse">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="tns:resource"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="resource">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="code" type="xs:string"/>
+      <xs:element minOccurs="0" name="name" type="xs:string"/>
+      <xs:element minOccurs="0" name="type" type="xs:string"/>
+      <xs:element minOccurs="0" name="count" type="xs:int"/>
+      <xs:element minOccurs="0" name="day" type="xs:string"/>
+      <xs:element minOccurs="0" name="shift" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getItemAll">
+    <xs:sequence/>
+  </xs:complexType>
+
+  <xs:complexType name="getItemAllResponse">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="tns:item"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getProductByCode">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getProductByCodeResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="tns:product"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getResourceByCode">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="getResourceByCodeResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="tns:resource"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
+  </wsdl:types>
+  <wsdl:message name="getItemByCode">
+    <wsdl:part element="tns:getItemByCode" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getProductAllResponse">
+    <wsdl:part element="tns:getProductAllResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getProductAll">
+    <wsdl:part element="tns:getProductAll" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getItemByCodeResponse">
+    <wsdl:part element="tns:getItemByCodeResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getResourceAll">
+    <wsdl:part element="tns:getResourceAll" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getItemAll">
+    <wsdl:part element="tns:getItemAll" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getResourceByCodeResponse">
+    <wsdl:part element="tns:getResourceByCodeResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getProductByCode">
+    <wsdl:part element="tns:getProductByCode" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getProductByCodeResponse">
+    <wsdl:part element="tns:getProductByCodeResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getResourceAllResponse">
+    <wsdl:part element="tns:getResourceAllResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getResourceByCode">
+    <wsdl:part element="tns:getResourceByCode" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getItemAllResponse">
+    <wsdl:part element="tns:getItemAllResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ERPService">
+    <wsdl:operation name="getItemByCode">
+      <wsdl:input message="tns:getItemByCode" name="getItemByCode">
+    </wsdl:input>
+      <wsdl:output message="tns:getItemByCodeResponse" name="getItemByCodeResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductAll">
+      <wsdl:input message="tns:getProductAll" name="getProductAll">
+    </wsdl:input>
+      <wsdl:output message="tns:getProductAllResponse" name="getProductAllResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getResourceAll">
+      <wsdl:input message="tns:getResourceAll" name="getResourceAll">
+    </wsdl:input>
+      <wsdl:output message="tns:getResourceAllResponse" name="getResourceAllResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getItemAll">
+      <wsdl:input message="tns:getItemAll" name="getItemAll">
+    </wsdl:input>
+      <wsdl:output message="tns:getItemAllResponse" name="getItemAllResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductByCode">
+      <wsdl:input message="tns:getProductByCode" name="getProductByCode">
+    </wsdl:input>
+      <wsdl:output message="tns:getProductByCodeResponse" name="getProductByCodeResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getResourceByCode">
+      <wsdl:input message="tns:getResourceByCode" name="getResourceByCode">
+    </wsdl:input>
+      <wsdl:output message="tns:getResourceByCodeResponse" name="getResourceByCodeResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ERPServiceServiceSoapBinding" type="tns:ERPService">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getItemByCode">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getItemByCode">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getItemByCodeResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductAll">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getProductAll">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getProductAllResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getResourceAll">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getResourceAll">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getResourceAllResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getItemAll">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getItemAll">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getItemAllResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductByCode">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getProductByCode">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getProductByCodeResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getResourceByCode">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getResourceByCode">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getResourceByCodeResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ERPServiceService">
+    <wsdl:port binding="tns:ERPServiceServiceSoapBinding" name="ERPServicePort">
+      <soap:address location="http://81.69.252.233:9003/erp"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

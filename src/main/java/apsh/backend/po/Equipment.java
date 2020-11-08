@@ -1,6 +1,8 @@
 package apsh.backend.po;
 
 import apsh.backend.dto.EquipmentDto;
+import apsh.backend.enums.ShiftType;
+import apsh.backend.enums.day;
 import apsh.backend.vo.ProductInResourceUseVo;
 import apsh.backend.vo.ResourceUseVo;
 import lombok.AllArgsConstructor;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +55,27 @@ public class Equipment {
                 .orElse("");
     }
 
+    public Equipment(Object o) throws NoSuchFieldException, IllegalAccessException {
+        Field f = o.getClass().getDeclaredField("code");
+        f.setAccessible(true);
+        this.name = (String) f.get(o);
 
+        this.count = 1;
+        f = o.getClass().getDeclaredField("day");
+        f.setAccessible(true);
+        String[] result1 = ((String) f.get(o)).split("-");
+        int start = day.intValue(result1[0]);
+        int end = day.intValue(result1[1]);
+        StringBuilder Schedule = new StringBuilder("1");
+        for (int i = start + 1; i <= end; i++) {
+            Schedule.append(",").append(i);
+        }
 
+        this.weeklySchedule = Schedule.toString();
+
+        f = o.getClass().getDeclaredField("shift");
+        f.setAccessible(true);
+        this.dailySchedule = ShiftType.valueOf(0).getShift((String) f.get(o));
+    }
 }
+

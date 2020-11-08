@@ -8,6 +8,10 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+import static apsh.backend.util.StringUtil.extractNumber;
 
 @Data
 @AllArgsConstructor
@@ -36,8 +40,17 @@ public class Order {
     private Integer isDeleted;
 
     public Order(CustomerOrderDto order) {
+
         this.productId = order.getProductId();
         this.deliveryDate = new Date(order.getDayOfDelivery().getTime());
         this.productCount = order.getProductCount();
     }
+
+    public Order(apsh.backend.serviceimpl.webservices.order.Order order) throws ParseException {
+        this.id = Integer.valueOf(extractNumber(order.getNumber()));
+        this.productId = Integer.valueOf(extractNumber(order.getItemCode()));
+        this.deliveryDate = new Date(new SimpleDateFormat("yyyy/MM/dd").parse(order.getDate()).getTime());
+        this.productCount = order.getCount();
+    }
+
 }
