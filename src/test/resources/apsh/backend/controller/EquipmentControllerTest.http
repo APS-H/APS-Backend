@@ -1,0 +1,5 @@
+GET {{hostAndPort}}/equipment/all?pageNum=1&pageSize=100
+Content-Type: application/json
+
+###########
+

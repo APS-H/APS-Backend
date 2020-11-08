@@ -29,25 +29,6 @@ public class LegacySystemServiceImpl implements LegacySystemService {
 
     @Override
     public List<Order> getAllOrders() {
-//        JaxWsDynamicClientFactory dcf = JaxWsDynamicClientFactory.newInstance();
-//        Client client = dcf.createClient(orderServiceUrl);
-//        try {
-//            // invoke("方法名",参数1,参数2,参数3....);
-//            Object[] objects = client.invoke("getOrderAll");
-//            List<Object> orders = (List) (objects[0]);
-//            return orders.stream().map(o -> {
-//                Order order = null;
-//                try {
-//                    order = new Order(o);
-//                } catch (NoSuchFieldException | IllegalAccessException | ParseException e) {
-//                    e.printStackTrace();
-//                }
-//                return order;
-//            }).collect(Collectors.toList());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return null;
         OrderServiceService oss = new OrderServiceService();
         OrderService os = oss.getOrderServicePort();
         List<apsh.backend.serviceimpl.webservices.order.Order> orders = os.getOrderAll();

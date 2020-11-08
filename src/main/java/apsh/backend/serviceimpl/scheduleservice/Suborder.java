@@ -3,18 +3,15 @@ package apsh.backend.serviceimpl.scheduleservice;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.*;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor
 @NoArgsConstructor
 @PlanningEntity
+@ToString
 public class Suborder {
     @NonNull
     private String id;

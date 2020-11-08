@@ -79,7 +79,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
-            List<OrderDto> orderDtos, Date startTime) {
+                                     List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
         List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
@@ -92,7 +92,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         stateJobSubmitted = true;
         stateSolutionSaved = false;
 
-        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
+        System.out.println("============================================================");
+        System.out.println("============================================================");
+        System.out.println("============================================================");
+        System.out.println("============================================================");
+
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, startTime);
 
         List<Suborder> suborders = splitOrders(orders, startTime, false);
 
@@ -107,7 +112,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+                                   OrderDto urgentOrderDto, Date insertTime, Date startTime) {
         if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
         // 如果结果没有保存说明排程可能正在运行
@@ -172,7 +177,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 }
             }
 
-        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, insertTime);
 
         // 重新排程
         dirtySuborders.addAll(urgentSuborder);
@@ -239,15 +244,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     /**
      * 生成所有的时间粒度
      */
-    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime) {
-        Date timeGrainRange = startTime;
+    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime, Date availableStartTime) {
+        int totalNeedHours = 0;
         for (Order order : orders)
-            if (order.getDeadline().after(timeGrainRange))
-                timeGrainRange = order.getDeadline();
+            totalNeedHours += order.getNeedTimeInHour();
         // 延迟系数
-        int factor = 3;
-        int availableTimeInHour = (int) ((timeGrainRange.getTime() - startTime.getTime()) / millisecondCountPerHour)
-                * factor;
+        int factor = 4;
+        int availableTimeInHour = totalNeedHours * factor;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
         for (int i = 0; i < availableTimeInHour; i++)
             timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
@@ -287,6 +290,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         for (Suborder suborder : solution.getSuborders()) {
+            System.out.println("suborder: " + suborder);
             OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
             Date startTime = suborder.getTimeGrain().getTime();
             Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);

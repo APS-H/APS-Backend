@@ -29,7 +29,6 @@ public class ManpowerDto {
     private List<TimeSectionDto> workSections;
 
     public ManpowerDto(HumanDto humanDto) {
-        System.out.println("humanDto: " + humanDto);
         this.id = humanDto.getTeamName();
         this.peopleCount = humanDto.getCount();
         // TODO : get shift from database
