@@ -1,6 +1,10 @@
 package apsh.backend.serviceimpl;
 
+import apsh.backend.dto.DeviceDto;
+import apsh.backend.dto.ManpowerDto;
+import apsh.backend.dto.OrderDto;
 import apsh.backend.dto.SystemTime;
+import apsh.backend.po.Craft;
 import apsh.backend.service.*;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
@@ -18,8 +22,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class TimeServiceImpl implements TimeService, GodService {
@@ -114,10 +124,7 @@ public class TimeServiceImpl implements TimeService, GodService {
         }
 
         // 调用排程模块重新计算排程
-        this.godBlessMe(
-                scheduleService, legacySystemService, orderService, humanService, equipmentService,
-                LocalDateTime.now()
-        );
+        this.godBlessMe(scheduleService);
     }
 
     // return null if time recorded illegal
@@ -149,6 +156,49 @@ public class TimeServiceImpl implements TimeService, GodService {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    @Override
+    public Map<String, Craft> prepareCrafts() {
+        return legacySystemService.getAllCrafts().parallelStream()
+                .collect(Collectors.toMap(Craft::getProductionId, c -> c));
+    }
+
+    @Override
+    public List<ManpowerDto> prepareManPowers() {
+        return humanService.getAll(Integer.MAX_VALUE, 1).parallelStream()
+                .map(ManpowerDto::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DeviceDto> prepareDevices() {
+        return equipmentService.getAll(Integer.MAX_VALUE, 1).parallelStream()
+                .flatMap(e -> IntStream.range(0, e.getCount()).mapToObj(id -> new DeviceDto(id, e)))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OrderDto> prepareOrders() {
+        Map<String, Craft> crafts = prepareCrafts();
+        return orderService.getAll(Integer.MAX_VALUE, 1).parallelStream()
+                .map(o -> {
+                    Craft craft = crafts.get(String.valueOf(o.getProductId()));
+                    if (craft == null) {
+                        // 说明该订单生产的物料没有对应的工艺，直接去掉该订单
+                        return null;
+                    }
+                    return new OrderDto(o, craft);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Date schedulingStartTime() {
+        LocalDateTime start = getTime().getStartTime();
+        return Date.from(LocalDateTime.of(start.toLocalDate(), LocalTime.of(start.getHour(), 0))
+                .atZone(ZoneId.systemDefault()).toInstant());
     }
 
 }
