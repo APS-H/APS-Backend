@@ -26,4 +26,9 @@ class LegacySystemServiceTest {
     void getAllEquipments() {
         System.out.println(legacySystemService.getAllEquipments());
     }
+
+    @Test
+    void getAllCrafts() {
+        System.out.println(legacySystemService.getAllCrafts());
+    }
 }

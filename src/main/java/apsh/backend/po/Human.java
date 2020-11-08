@@ -30,15 +30,19 @@ public class Human {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    // 2组-丁梅（3）
     @Column(name = "group_name")
     private String groupName;
 
+    // 3
     @Column(name = "group_size")
     private Integer groupSize;
 
+    // 1,2,3,4,5 或者 1,2,3,4,5,6,7
     @Column(name = "weekly_schedule")
     private String weeklySchedule;
 
+    // 早班、晚班、全天
     @JoinColumn(name = "daily_schedule")
     @OneToOne(targetEntity = Shift.class)
     private Shift dailySchedule;

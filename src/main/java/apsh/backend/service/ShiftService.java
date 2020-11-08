@@ -4,6 +4,6 @@ import apsh.backend.po.Shift;
 
 public interface ShiftService {
 
-    Shift getShift(String name);
+    Shift getShift(int id);
 
 }

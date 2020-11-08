@@ -1,9 +1,6 @@
 package apsh.backend.enums;
 
 import apsh.backend.po.Shift;
-import apsh.backend.repository.ShiftRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-
 
 import java.sql.Time;
 
@@ -66,5 +63,22 @@ public enum ShiftType {
             s.setEndTime(new Time(19, 0, 0));
             return s;
         }
+    }
+
+    public Shift getShift() {
+        Shift s = new Shift();
+        s.setName(value);
+        if ("早班".equals(value())) {
+            s.setStartTime(new Time(0, 0, 0));
+            s.setEndTime(new Time(24, 0, 0));
+        } else if ("晚班".equals(value())) {
+            s.setStartTime(new Time(19, 0, 0));
+            s.setEndTime(new Time(7, 0, 0));
+            return s;
+        } else {
+            s.setStartTime(new Time(7, 0, 0));
+            s.setEndTime(new Time(19, 0, 0));
+        }
+        return s;
     }
 }

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -89,20 +90,20 @@ public class EquipmentServiceImpl implements EquipmentService {
         List<Equipment> incrementEquipments = this.equipmentRepository.findAll();
         List<EquipmentDto> mergedEquipments = merge(legacySystemAllEquipments, incrementEquipments).parallelStream()
                 .map(EquipmentDto::new)
-                .sorted((e1, e2) -> e1.getDeviceId() < e2.getDeviceId() ? 1 : 0)
+                .sorted(Comparator.comparing(EquipmentDto::getName))
                 .collect(Collectors.toList());
-        int start = pageSize * (pageNum - 1);
-        int end = pageSize * pageNum;
+        int start = Math.max(0, pageSize * (pageNum - 1));
+        int end = Math.min(mergedEquipments.size(), pageSize * pageNum);
         return mergedEquipments.subList(start, end);
     }
 
     private List<Equipment> merge(List<Equipment> legacySystemAllEquipments, List<Equipment> incrementEquipments) {
-        Map<Integer, Equipment> mergedOrders = legacySystemAllEquipments.parallelStream().collect(Collectors.toMap(Equipment::getId, o -> o));
+        Map<String, Equipment> mergedOrders = legacySystemAllEquipments.parallelStream().collect(Collectors.toMap(Equipment::getName, o -> o));
         incrementEquipments.forEach(o -> {
             if (o.getIsDeleted() == Order.DELETED) {
-                mergedOrders.remove(o.getId());
+                mergedOrders.remove(o.getName());
             } else {
-                mergedOrders.put(o.getId(), o);
+                mergedOrders.put(o.getName(), o);
             }
         });
         return mergedOrders.values().parallelStream().collect(Collectors.toList());

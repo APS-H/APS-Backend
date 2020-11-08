@@ -11,6 +11,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -39,8 +40,13 @@ public interface GodService {
             List<OrderDto> orderDtos = orderService.getAll(Integer.MAX_VALUE, 1).parallelStream()
                     .map(o -> {
                         Craft craft = crafts.get(String.valueOf(o.getProductId()));
+                        if (craft == null) {
+                            // 说明该订单生产的物料没有对应的工艺，直接去掉该订单
+                            return null;
+                        }
                         return new OrderDto(o, craft);
                     })
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             Date startTime = Date.from(LocalDateTime.of(now.toLocalDate(), LocalTime.of(now.getHour(), 0))
                     .atZone(ZoneId.systemDefault()).toInstant());
