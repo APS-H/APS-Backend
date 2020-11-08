@@ -77,8 +77,11 @@ public class OrderController {
     @GetMapping(value = "/progress/all")
     public OrderProgressVo getOrderProgress(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
                                             @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
-        // TODO:
-        return null;
+        logger.infoControllerRequest("GET", "/progress/all", "pageSize=" + pageSize + ", pageNum=" + pageNum);
+        OrderProgressVo orderProgressVo=orderService.getOrderProgress(date);
+        orderProgressVo.page(pageSize,pageNum);
+        logger.infoControllerResponse("GET", "/progress/all", orderProgressVo);
+        return orderProgressVo;
     }
 
 }
