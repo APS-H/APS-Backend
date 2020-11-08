@@ -234,6 +234,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new RuntimeException("排程失败 原因未知");
         }
         solutionDto = getSolutionDto(solution);
+        System.out.println(solution.getScore());
         saveInputAndSolution();
         stateSolutionSaved = true;
         return solutionDto;
