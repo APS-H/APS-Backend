@@ -26,7 +26,8 @@ public class OrderVo {
         this.orderId = String.valueOf(customerOrderDto.getOrderId());
         this.stockId = String.valueOf(customerOrderDto.getProductId());
         this.dayOfDelivery = customerOrderDto.getDayOfDelivery();
-        this.state = customerOrderDto.getState().value();
+        if (customerOrderDto.getState() != null)    // 调度算法可能还没计算出生产单
+            this.state = customerOrderDto.getState().value();
         this.orderAmount = customerOrderDto.getProductCount();
     }
 }

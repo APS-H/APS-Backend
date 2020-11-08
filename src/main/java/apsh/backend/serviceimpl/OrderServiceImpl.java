@@ -3,10 +3,7 @@ package apsh.backend.serviceimpl;
 import apsh.backend.dto.CustomerOrderDto;
 import apsh.backend.enums.OrderStatus;
 import apsh.backend.po.Order;
-
-import apsh.backend.po.OrderProduction;
 import apsh.backend.po.SuborderProduction;
-
 import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.LegacySystemService;
@@ -20,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -56,7 +52,11 @@ public class OrderServiceImpl implements OrderService {
         List<CustomerOrderDto> mergedOrders = merge(legacySystemAllOrders, incrementOrders).parallelStream()
                 .map(o -> {
                     CustomerOrderDto customerOrderDto = new CustomerOrderDto(o);
-                    Instant deliveryDate = o.getDeliveryDate().toInstant();
+                    if (orderStatusList == null || orderStatusList.size() == 0) {
+                        // 排程算法还未开始计算或者尚未计算出结果，此时无法获取订单状态
+                        return customerOrderDto;
+                    }
+                    Instant deliveryDate = new Date(o.getDeliveryDate().getTime()).toInstant();
                     Instant orderEndTime = orderStatusList.get(o.getId());
                     if (deliveryDate.isAfter(orderEndTime)) {   // 交付时间 晚于 订单完成时间
                         if (orderEndTime.isBefore(now)) {   // 订单完成时间 早于 当前时间
@@ -73,8 +73,8 @@ public class OrderServiceImpl implements OrderService {
                     }
                     return customerOrderDto;
                 }).sorted(((o1, o2) -> o1.getOrderId() < o2.getOrderId() ? 1 : 0)).collect(Collectors.toList());
-        int start = pageSize * (pageNum - 1);
-        int end = pageSize * pageNum;
+        int start = Math.max(0, pageSize * (pageNum - 1));
+        int end = Math.min(mergedOrders.size(), pageSize * pageNum);
         return mergedOrders.subList(start, end);
     }
 

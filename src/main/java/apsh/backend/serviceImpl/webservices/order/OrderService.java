@@ -28,12 +28,12 @@ public interface OrderService {
      * 
      * @param arg0
      * @return
-     *     returns apsh.backend.serviceimpl.LegacySystemWebService.order.Order
+     *     returns apsh.backend.serviceimpl.webservices.order.Order
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getOrderById", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.LegacySystemWebService.order.GetOrderById")
-    @ResponseWrapper(localName = "getOrderByIdResponse", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.LegacySystemWebService.order.GetOrderByIdResponse")
+    @RequestWrapper(localName = "getOrderById", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.webservices.order.GetOrderById")
+    @ResponseWrapper(localName = "getOrderByIdResponse", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.webservices.order.GetOrderByIdResponse")
     public Order getOrderById(
         @WebParam(name = "arg0", targetNamespace = "")
         String arg0);
@@ -41,12 +41,12 @@ public interface OrderService {
     /**
      * 
      * @return
-     *     returns java.util.List<apsh.backend.serviceimpl.LegacySystemWebService.order.Order>
+     *     returns java.util.List<apsh.backend.serviceimpl.webservices.order.Order>
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getOrderAll", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.LegacySystemWebService.order.GetOrderAll")
-    @ResponseWrapper(localName = "getOrderAllResponse", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.LegacySystemWebService.order.GetOrderAllResponse")
+    @RequestWrapper(localName = "getOrderAll", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.webservices.order.GetOrderAll")
+    @ResponseWrapper(localName = "getOrderAllResponse", targetNamespace = "http://service.legacy.apsh.com/", className = "apsh.backend.serviceimpl.webservices.order.GetOrderAllResponse")
     public List<Order> getOrderAll();
 
 }

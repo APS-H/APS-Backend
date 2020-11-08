@@ -10,7 +10,7 @@ import javax.xml.namespace.QName;
 /**
  * This object contains factory methods for each 
  * Java content interface and Java element interface 
- * generated in the apsh.backend.serviceimpl.LegacySystemWebService.order package. 
+ * generated in the apsh.backend.serviceimpl.webservices.order package. 
  * <p>An ObjectFactory allows you to programatically 
  * construct new instances of the Java representation 
  * for XML content. The Java representation of XML 
@@ -30,7 +30,7 @@ public class ObjectFactory {
     private final static QName _GetOrderByIdResponse_QNAME = new QName("http://service.legacy.apsh.com/", "getOrderByIdResponse");
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: apsh.backend.serviceimpl.LegacySystemWebService.order
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: apsh.backend.serviceimpl.webservices.order
      * 
      */
     public ObjectFactory() {
