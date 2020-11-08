@@ -92,7 +92,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         stateJobSubmitted = true;
         stateSolutionSaved = false;
 
-        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, startTime);
 
         List<Suborder> suborders = splitOrders(orders, startTime, false);
 
@@ -172,7 +172,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 }
             }
 
-        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime);
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, insertTime);
 
         // 重新排程
         dirtySuborders.addAll(urgentSuborder);
@@ -239,7 +239,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     /**
      * 生成所有的时间粒度
      */
-    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime) {
+    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime, Date availableStartTime) {
         int totalNeedHours = 0;
         for (Order order : orders)
             totalNeedHours += order.getNeedTimeInHour();
