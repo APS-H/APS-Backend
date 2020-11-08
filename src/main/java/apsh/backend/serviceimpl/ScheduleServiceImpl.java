@@ -79,7 +79,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
-            List<OrderDto> orderDtos, Date startTime) {
+                                     List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
         List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
@@ -91,6 +91,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         solutionDto = null;
         stateJobSubmitted = true;
         stateSolutionSaved = false;
+
+        System.out.println("============================================================");
+        System.out.println("============================================================");
+        System.out.println("============================================================");
+        System.out.println("============================================================");
 
         List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, startTime);
 
@@ -107,7 +112,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+                                   OrderDto urgentOrderDto, Date insertTime, Date startTime) {
         if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
         // 如果结果没有保存说明排程可能正在运行
@@ -285,6 +290,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         for (Suborder suborder : solution.getSuborders()) {
+            System.out.println("suborder: " + suborder);
             OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
             Date startTime = suborder.getTimeGrain().getTime();
             Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);

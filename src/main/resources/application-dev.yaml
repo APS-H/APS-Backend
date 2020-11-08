@@ -9,4 +9,4 @@ time-server-url: /tmp/.apsh-backend/apsh-ts  # 系统起始时间 和 时间流�
 optaplanner:
   solver:
     termination:
-      spent-limit: 20s
+      spent-limit: 120s

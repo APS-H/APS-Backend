@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import apsh.backend.po.Craft;
+import apsh.backend.po.Equipment;
+import apsh.backend.po.Human;
 import apsh.backend.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,12 +51,14 @@ public class OrderDto {
         this.needPeopleCount = craft.getNeedPeopleCount();
         this.deadline = customerOrderDto.getDayOfDelivery();
         this.availableManpowerIdList = craft.getAvailableHumanList().parallelStream()
-                .peek(h -> h.setGroupSize(StringUtil.lastDigit(h.getGroupName())))
-                .flatMap(h -> IntStream.range(0, h.getGroupSize()).mapToObj(id -> h.getGroupName() + id))
+//                .peek(h -> h.setGroupSize(StringUtil.lastDigit(h.getGroupName())))
+//                .flatMap(h -> IntStream.range(0, h.getGroupSize()).mapToObj(id -> h.getGroupName() + id))
+                .map(Human::getGroupName)
                 .collect(Collectors.toList());
         this.availableDeviceTypeIdList = craft.getAvailableEquipmentList().parallelStream()
-                .peek(e -> e.setCount(StringUtil.lastDigit(e.getName())))
-                .flatMap(e -> IntStream.range(0, e.getCount()).mapToObj(id -> e.getName() + id))
+//                .peek(e -> e.setCount(StringUtil.lastDigit(e.getName())))
+//                .flatMap(e -> IntStream.range(0, e.getCount()).mapToObj(id -> e.getName() + id))
+                .map(Equipment::getName)
                 .collect(Collectors.toList());
     }
 }

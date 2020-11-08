@@ -24,8 +24,11 @@ public interface GodService {
             // 调用排程模块重新计算排程
             scheduleService.removeCurrentArrangement();
             List<ManpowerDto> manpowerDtos = prepareManPowers();
+            manpowerDtos.forEach(System.out::println);
             List<DeviceDto> deviceDtos = prepareDevices();
+            deviceDtos.forEach(System.out::println);
             List<OrderDto> orderDtos = prepareOrders();
+            orderDtos.forEach(System.out::println);
 
             scheduleService.arrangeInitialOrders(
                     manpowerDtos,
