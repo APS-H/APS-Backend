@@ -21,7 +21,7 @@ public class TimeServiceTest {
     @Test
     void setTime() throws InterruptedException {
         SystemTime systemTime = new SystemTime(
-                LocalDateTime.of(2017, 6, 10, 12, 0, 0),
+                LocalDateTime.of(2017, 6, 10, 7, 0, 0),
                 2.0,
                 LocalDateTime.now()
         );

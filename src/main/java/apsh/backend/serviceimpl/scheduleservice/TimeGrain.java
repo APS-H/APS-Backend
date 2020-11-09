@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class TimeGrain {
     private int index;
     private Date time;
+    private int hourOfDay;
 }

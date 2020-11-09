@@ -1,5 +1,6 @@
 package apsh.backend.serviceimpl;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -38,7 +39,10 @@ import apsh.backend.serviceimpl.scheduleservice.TimeSection;
 
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
-    static Long millisecondCountPerHour = 60L * 60L * 1000L;
+    static final Long millisecondCountPerHour = 60L * 60L * 1000L;
+
+    // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
+    static final int maxSuborderNeedTimeInHour = 6;
 
     @Autowired
     private OrderProductionRepository orderProductionRepository;
@@ -79,7 +83,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
-                                     List<OrderDto> orderDtos, Date startTime) {
+            List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
         List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
@@ -91,11 +95,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         solutionDto = null;
         stateJobSubmitted = true;
         stateSolutionSaved = false;
-
-        System.out.println("============================================================");
-        System.out.println("============================================================");
-        System.out.println("============================================================");
-        System.out.println("============================================================");
 
         List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, startTime);
 
@@ -112,7 +111,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-                                   OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
         if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
         // 如果结果没有保存说明排程可能正在运行
@@ -157,8 +156,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 suborder.setNeedTimeInHour(
                         (int) ((dto.getEndTime().getTime() - dto.getStartTime().getTime()) / millisecondCountPerHour));
                 suborder.setNeedPeopleCount(order.getNeedPeopleCount());
-                suborder.setAvailableManpowerIdList(order.getAvailableManpowerIdList());
-                suborder.setAvailableDeviceTypeIdList(order.getAvailableDeviceTypeIdList());
+                suborder.setAvailableManpowerIdSet(order.getAvailableManpowerIdSet());
+                suborder.setAvailableDeviceTypeIdSet(order.getAvailableDeviceTypeIdSet());
                 int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
                         / millisecondCountPerHour);
                 suborder.setDeadlineTimeGrainIndex(ddlTimeGrainIndex);
@@ -212,6 +211,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             } catch (Exception e) {
                 throw new RuntimeException("排程失败 原因未知");
             }
+            System.out.println(solution.getScore());
             solutionDto = getSolutionDto(solution);
             saveInputAndSolution();
             stateSolutionSaved = true;
@@ -235,6 +235,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         } catch (Exception e) {
             throw new RuntimeException("排程失败 原因未知");
         }
+        System.out.println(solution.getScore());
         solutionDto = getSolutionDto(solution);
         saveInputAndSolution();
         stateSolutionSaved = true;
@@ -249,18 +250,35 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (Order order : orders)
             totalNeedHours += order.getNeedTimeInHour();
         // 延迟系数
-        int factor = 4;
-        int availableTimeInHour = totalNeedHours * factor;
+        float factor = 1f;
+        int availableTimeInHour = (int) (totalNeedHours / maxSuborderNeedTimeInHour * factor) + 5;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
-        for (int i = 0; i < availableTimeInHour; i++)
-            timeGrains.add(new TimeGrain(i, new Date(startTime.getTime() + i * millisecondCountPerHour)));
+        Calendar startTimeCalendar = Calendar.getInstance();
+        startTimeCalendar.setTime(startTime);
+        int startHourOfDay = startTimeCalendar.get(Calendar.HOUR_OF_DAY);
+        Calendar tempCalendar = Calendar.getInstance();
+        int tempDayOfWeek = -1;
+        for (int i = 0; i < availableTimeInHour; i++) {
+            Date date = new Date(startTime.getTime() + i * maxSuborderNeedTimeInHour * millisecondCountPerHour);
+            // 周末不上班
+            tempCalendar.setTime(date);
+            tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+                continue;
+            Date endDate = new Date(date.getTime() + maxSuborderNeedTimeInHour * millisecondCountPerHour);
+            tempCalendar.setTime(endDate);
+            tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+                continue;
+            // 添加时间粒度
+            timeGrains.add(new TimeGrain(i, date, startHourOfDay));
+            startHourOfDay = (startHourOfDay + maxSuborderNeedTimeInHour) % 24;
+        }
         return timeGrains;
     }
 
     private List<Suborder> splitOrders(List<Order> orders, Date startTime, boolean urgent) {
         // 划分子订单
-        // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-        int maxSuborderNeedTimeInHour = 3;
         List<Suborder> suborders = new ArrayList<>(orders.size());
         for (Order order : orders) {
             int suborderIndex = 0;
@@ -290,12 +308,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         for (Suborder suborder : solution.getSuborders()) {
-            System.out.println("suborder: " + suborder);
             OrderProductionDto dto = orderProductionDtoMap.get(suborder.getOrderId());
-            Date startTime = suborder.getTimeGrain().getTime();
-            Date endTime = new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);
+            Date startTime = (suborder.getTimeGrain() == null) ? null : suborder.getTimeGrain().getTime();
+            Date endTime = (startTime == null) ? null
+                    : new Date(startTime.getTime() + suborder.getNeedTimeInHour() * millisecondCountPerHour);
             SuborderProductionDto suborderDto = new SuborderProductionDto(suborder.getId(), startTime, endTime,
-                    suborder.getManpowerIds(), suborder.getDevice().getId());
+                    suborder.getManpowerIds(), (suborder.getDevice() == null) ? null : suborder.getDevice().getId());
             dto.getSuborders().add(suborderDto);
         }
         for (Suborder suborder : solution.getFixedSuborders()) {
@@ -317,9 +335,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<OrderProduction> orderProductionPos = new ArrayList<>(solutionDto.size());
         for (OrderProductionDto orderProductionDto : solutionDto) {
             Set<SuborderProduction> suborderProductionPos = new HashSet<>(orderProductionDto.getSuborders().size());
-            for (SuborderProductionDto dto : orderProductionDto.getSuborders())
-                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), dto.getStartTime().toInstant(),
-                        dto.getEndTime().toInstant(), dto.getManpowerIds(), dto.getDeviceId()));
+            for (SuborderProductionDto dto : orderProductionDto.getSuborders()) {
+                Instant startInstant = (dto.getStartTime() == null) ? null : dto.getStartTime().toInstant();
+                Instant endInstant = (dto.getEndTime() == null) ? null : dto.getEndTime().toInstant();
+                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), startInstant, endInstant,
+                        dto.getManpowerIds(), dto.getDeviceId()));
+            }
             orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(), suborderProductionPos));
         }
         orderProductionRepository.deleteAll();
