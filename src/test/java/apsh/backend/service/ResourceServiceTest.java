@@ -18,11 +18,13 @@ class ResourceServiceTest {
     void getResourceLoad() throws ParseException {
         Date date1 = format.parse(beginTime);
         service.getResourceLoad(date1,1,7);
+
     }
 
     @Test
     void getResourceUse() throws ParseException {
         Date date1 = format.parse(beginTime);
         service.getResourceUse(date1,1,7);
+
     }
 }

@@ -5,17 +5,13 @@ import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Order;
 import apsh.backend.service.LegacySystemService;
-<<<<<<< HEAD
-import apsh.backend.serviceimpl.LegacySystemWebService.ERPService;
-import apsh.backend.serviceimpl.LegacySystemWebService.ERPServiceService;
-import apsh.backend.serviceimpl.LegacySystemWebService.Product;
-=======
+
 import apsh.backend.serviceimpl.webservices.ERPService;
 import apsh.backend.serviceimpl.webservices.ERPServiceService;
 import apsh.backend.serviceimpl.webservices.Product;
 import apsh.backend.serviceimpl.webservices.order.OrderService;
 import apsh.backend.serviceimpl.webservices.order.OrderServiceService;
->>>>>>> 839edd724a962fe00e52667aa4c4b124723264c2
+
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.springframework.stereotype.Service;

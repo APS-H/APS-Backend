@@ -52,21 +52,29 @@ public class OrderProduction {
     }
 
 
-    public OrderInOrderProgressVo getOrderInOrderProgress(Date date){
+    public OrderInOrderProgressVo getOrderInOrderProgress(Date date) {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
-       origin=origin.stream().sorted((t1, t2) -> t2.getStartTime().isAfter(t1.getStartTime())).collect(Collectors.toList());
+        origin = origin.stream().sorted((t1, t2) -> {
+            if (t2.getStartTime().isAfter(t1.getStartTime())) {
+                return 1;
 
-       long total=origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream().mapToLong(o->o).sum();
+            } else {
+                return -1;
+            }
+        }).collect(Collectors.toList());
 
-       long work= origin.stream().filter(s -> {
+        long total = origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream().mapToLong(o -> o).sum();
+
+        long work = origin.stream().filter(s -> {
             //Date date1 = Date.from(s.getStartTime());
             Date date2 = Date.from(s.getEndTime());
-            return date.compareTo(date2)>=0;
+            return date.compareTo(date2) >= 0;
         }).collect(Collectors.toList())
-        .stream().mapToLong(o->o.getWorkTime()).sum();
+                .stream().mapToLong(o -> o.getWorkTime()).sum();
 
-       OrderInOrderProgressVo OIPVO=new OrderInOrderProgressVo(String.valueOf(id),work/total,1.0,false);
-       return OIPVO;
+        Double rate=((double)work)/total;
+        OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, 1.0, false);
+        return OIPVO;
 
     }
 }

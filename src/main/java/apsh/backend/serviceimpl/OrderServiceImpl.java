@@ -135,8 +135,8 @@ public class OrderServiceImpl implements OrderService, GodService {
                         return o.getOrderInOrderProgress(date);
                     })
                 .collect(Collectors.toList());
-        Double totalrate=progress.stream().mapToDouble(o->o.getAssembleRate()).average();
-        OrderProgressVo OPVO=new OrderProgressVo(totalrate,progress);
+        OptionalDouble totalrate=progress.stream().mapToDouble(o-> o.getAssembleRate()).average();
+        OrderProgressVo OPVO=new OrderProgressVo(totalrate.getAsDouble(),progress);
         return OPVO;
     }
 
