@@ -42,7 +42,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     static final Long millisecondCountPerHour = 60L * 60L * 1000L;
 
     // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-    static final int maxSuborderNeedTimeInHour = 6;
+    static final int maxSuborderNeedTimeInHour = 12;
 
     @Autowired
     private OrderProductionRepository orderProductionRepository;
@@ -246,30 +246,32 @@ public class ScheduleServiceImpl implements ScheduleService {
      * 生成所有的时间粒度
      */
     private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime, Date availableStartTime) {
-        int totalNeedHours = 0;
+        int availableTimeGrainCount = 0;
         for (Order order : orders)
-            totalNeedHours += order.getNeedTimeInHour();
-        // 延迟系数
-        float factor = 1f;
-        int availableTimeInHour = (int) (totalNeedHours / maxSuborderNeedTimeInHour * factor) + 5;
-        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
+            availableTimeGrainCount += order.getNeedTimeInHour() / maxSuborderNeedTimeInHour + 1;
+        availableTimeGrainCount *= 2;
+        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeGrainCount);
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
         int startHourOfDay = startTimeCalendar.get(Calendar.HOUR_OF_DAY);
         Calendar tempCalendar = Calendar.getInstance();
         int tempDayOfWeek = -1;
-        for (int i = 0; i < availableTimeInHour; i++) {
+        for (int i = 0; i < availableTimeGrainCount; i++) {
             Date date = new Date(startTime.getTime() + i * maxSuborderNeedTimeInHour * millisecondCountPerHour);
             // 周末不上班
             tempCalendar.setTime(date);
             tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
-            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY) {
+                availableTimeGrainCount++;
                 continue;
+            }
             Date endDate = new Date(date.getTime() + maxSuborderNeedTimeInHour * millisecondCountPerHour);
             tempCalendar.setTime(endDate);
             tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
-            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY) {
+                availableTimeGrainCount++;
                 continue;
+            }
             // 添加时间粒度
             timeGrains.add(new TimeGrain(i, date, startHourOfDay));
             startHourOfDay = (startHourOfDay + maxSuborderNeedTimeInHour) % 24;
