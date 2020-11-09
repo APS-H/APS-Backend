@@ -155,8 +155,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 suborder.setNeedTimeInHour(
                         (int) ((dto.getEndTime().getTime() - dto.getStartTime().getTime()) / millisecondCountPerHour));
                 suborder.setNeedPeopleCount(order.getNeedPeopleCount());
-                suborder.setAvailableManpowerIdList(order.getAvailableManpowerIdList());
-                suborder.setAvailableDeviceTypeIdList(order.getAvailableDeviceTypeIdList());
+                suborder.setAvailableManpowerIdSet(order.getAvailableManpowerIdSet());
+                suborder.setAvailableDeviceTypeIdSet(order.getAvailableDeviceTypeIdSet());
                 int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
                         / millisecondCountPerHour);
                 suborder.setDeadlineTimeGrainIndex(ddlTimeGrainIndex);
@@ -251,9 +251,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         float factor = 0.35f;
         int availableTimeInHour = (int) (totalNeedHours / maxSuborderNeedTimeInHour * factor) + 5;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
-        for (int i = 0; i < availableTimeInHour; i++)
-            timeGrains.add(new TimeGrain(i,
-                    new Date(startTime.getTime() + i * maxSuborderNeedTimeInHour * millisecondCountPerHour)));
+        Calendar startTimeCalendar = Calendar.getInstance();
+        startTimeCalendar.setTime(startTime);
+        int startHourOfDay = startTimeCalendar.get(Calendar.HOUR_OF_DAY);
+        for (int i = 0; i < availableTimeInHour; i++) {
+            Date date = new Date(startTime.getTime() + i * maxSuborderNeedTimeInHour * millisecondCountPerHour);
+            timeGrains.add(new TimeGrain(i, date, startHourOfDay));
+            startHourOfDay = (startHourOfDay + maxSuborderNeedTimeInHour) % 24;
+        }
         return timeGrains;
     }
 

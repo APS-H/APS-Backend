@@ -1,6 +1,7 @@
 package apsh.backend.serviceimpl.scheduleservice;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import lombok.*;
@@ -24,9 +25,9 @@ public class Suborder {
     @NonNull
     private Integer needPeopleCount;
     @NonNull
-    private List<String> availableManpowerIdList;
+    private HashSet<String> availableManpowerIdSet;
     @NonNull
-    private List<String> availableDeviceTypeIdList;
+    private HashSet<String> availableDeviceTypeIdSet;
     @NonNull
     private Integer deadlineTimeGrainIndex;
 
@@ -80,18 +81,37 @@ public class Suborder {
         return res;
     }
 
-    // 人力资源不可用
-    public boolean manpowerNotAvailable(Manpower manpower) {
-        if (manpower == null)
-            return false;
-        return !availableManpowerIdList.contains(manpower.getId());
+    // 人力资源不可用的总数
+    public int manpowerNotAvailableCount() {
+        int count = 0;
+        if (manpowerA != null && !availableManpowerIdSet.contains(manpowerA.getId()))
+            count++;
+        if (manpowerB != null && !availableManpowerIdSet.contains(manpowerB.getId()))
+            count++;
+        if (manpowerC != null && !availableManpowerIdSet.contains(manpowerC.getId()))
+            count++;
+        return count;
+    }
+
+    // 人力资源不能工作的总数
+    public int manpowerCannotWorkCount() {
+        if (timeGrain == null)
+            return 0;
+        int count = 0;
+        if (manpowerA != null && !manpowerA.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+            count++;
+        if (manpowerB != null && !manpowerB.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+            count++;
+        if (manpowerC != null && !manpowerC.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+            count++;
+        return count;
     }
 
     // 设备不可用
     public boolean deviceNotAvailable() {
         if (device == null)
             return false;
-        return !availableDeviceTypeIdList.contains(device.getDeviceTypeId());
+        return !availableDeviceTypeIdSet.contains(device.getDeviceTypeId());
     }
 
     // 两个订单使用了多少组相同的人力资源
@@ -120,7 +140,7 @@ public class Suborder {
     public static Suborder create(Order order, int index, boolean urgent, int needTimeInHour,
             int deadlineTimeGrainIndex) {
         return new Suborder(order.getId() + " " + index, order.getId(), urgent, needTimeInHour,
-                order.getNeedPeopleCount(), order.getAvailableManpowerIdList(), order.getAvailableDeviceTypeIdList(),
+                order.getNeedPeopleCount(), order.getAvailableManpowerIdSet(), order.getAvailableDeviceTypeIdSet(),
                 deadlineTimeGrainIndex);
     }
 }
