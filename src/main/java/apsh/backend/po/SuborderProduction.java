@@ -1,6 +1,7 @@
 package apsh.backend.po;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -40,4 +41,9 @@ public class SuborderProduction {
 
     @Column(name = "device_id")
     private String deviceId;
+
+    public long getWorkTime(){
+      return   ChronoUnit.MINUTES.between(endTime, startTime);
+    };
+
 }
