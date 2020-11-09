@@ -24,8 +24,8 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
     private Constraint manpowerNotAvailable(ConstraintFactory constraintFactory) {
         // 人力资源不可用
-        return constraintFactory.from(Suborder.class).penalize("Manpower A not available", HardSoftScore.ONE_HARD,
-                Suborder::manpowerNotAvailableCount);
+        return constraintFactory.from(Suborder.class).penalize("Manpower not available", HardSoftScore.ONE_HARD,
+                Suborder::manpowerNotAvailableCountMul2);
     }
 
     private Constraint deviceNotAvailable(ConstraintFactory constraintFactory) {

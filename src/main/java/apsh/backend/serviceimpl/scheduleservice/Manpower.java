@@ -37,4 +37,9 @@ public class Manpower {
                 return true;
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "{ " + id.toString() + ", " + peopleCount.toString() + ", " + workSections.toString() + " }";
+    }
 }

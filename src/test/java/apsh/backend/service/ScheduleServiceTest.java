@@ -28,6 +28,51 @@ public class ScheduleServiceTest {
     static final List<TimeSectionDto> nightTime = Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7));
 
     @Test
+    void testGetArrangementCnm() throws ParseException {
+        List<ManpowerDto> manpowerDtos = new ArrayList<>();
+        manpowerDtos.add(new ManpowerDto("丁（3）", 3, nightTime));
+        manpowerDtos.add(new ManpowerDto("刘（3）", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("张（3）", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("赵（3）", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+        manpowerDtos.add(new ManpowerDto("cnm", 3, dayTime));
+
+        List<DeviceDto> deviceDtos = new ArrayList<>();
+        deviceDtos.add(new DeviceDto("dev1", "line1"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev2", "line2"));
+        deviceDtos.add(new DeviceDto("dev3", "line3"));
+        List<OrderDto> orderDtos = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+        Date startTime = dateFormat.parse("2020-10-01 7");
+        orderDtos.add(new OrderDto("order1", false, 96, 4, dateFormat.parse("2020-10-02 09"),
+                Arrays.asList("丁（3）", "刘（3）", "张（3）", "赵（3）"), Arrays.asList("line3")));
+
+        service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
+        List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
+        System.out.println(orderProductionDtos.size());
+        assert (orderProductionDtos.size() >= 3);
+    }
+
+    @Test
     void testGetArrangementSmall() throws ParseException {
         List<ManpowerDto> manpowerDtos = new ArrayList<>();
         manpowerDtos.add(new ManpowerDto("man1", 5, dayTime));

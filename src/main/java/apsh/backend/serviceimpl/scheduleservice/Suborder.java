@@ -81,8 +81,8 @@ public class Suborder {
         return res;
     }
 
-    // 人力资源不可用的总数
-    public int manpowerNotAvailableCount() {
+    // 人力资源不可用的总数乘二 因为人力资源可用的优先级高于人数
+    public int manpowerNotAvailableCountMul2() {
         int count = 0;
         if (manpowerA != null && !availableManpowerIdSet.contains(manpowerA.getId()))
             count++;
@@ -90,7 +90,7 @@ public class Suborder {
             count++;
         if (manpowerC != null && !availableManpowerIdSet.contains(manpowerC.getId()))
             count++;
-        return count;
+        return count * 2;
     }
 
     // 人力资源不能工作的总数
