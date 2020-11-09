@@ -24,31 +24,56 @@ public class ScheduleServiceTest {
 
         @Test
         void testGetArrangement() throws ParseException {
+                List<TimeSectionDto> dayTime = Arrays.asList(new TimeSectionDto(7, 19));
+                List<TimeSectionDto> nightTime = Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7));
                 List<ManpowerDto> manpowerDtos = new ArrayList<>();
-                manpowerDtos.add(new ManpowerDto("man1", 5, Arrays.asList(new TimeSectionDto(7, 19))));
-                manpowerDtos.add(new ManpowerDto("man2", 5, Arrays.asList(new TimeSectionDto(7, 19))));
-                manpowerDtos.add(new ManpowerDto("man3", 5,
-                                Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
-                manpowerDtos.add(new ManpowerDto("man4", 5,
-                                Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7))));
+                manpowerDtos.add(new ManpowerDto("man1", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man2", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man3", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man4", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man5", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man6", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man7", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man8", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man9", 5, dayTime));
+                manpowerDtos.add(new ManpowerDto("man10", 5, nightTime));
+                manpowerDtos.add(new ManpowerDto("man11", 5, nightTime));
+                manpowerDtos.add(new ManpowerDto("man12", 5, nightTime));
+                manpowerDtos.add(new ManpowerDto("man13", 5, nightTime));
+                manpowerDtos.add(new ManpowerDto("man14", 5, nightTime));
+                manpowerDtos.add(new ManpowerDto("man15", 5, nightTime));
+                manpowerDtos.add(new ManpowerDto("man16", 5, nightTime));
+
                 List<DeviceDto> deviceDtos = new ArrayList<>();
                 deviceDtos.add(new DeviceDto("dev1", "line1"));
                 deviceDtos.add(new DeviceDto("dev2", "line1"));
-                deviceDtos.add(new DeviceDto("dev3", "line2"));
-                deviceDtos.add(new DeviceDto("dev4", "line2"));
+                deviceDtos.add(new DeviceDto("dev3", "line1"));
+                deviceDtos.add(new DeviceDto("dev4", "line1"));
+                deviceDtos.add(new DeviceDto("dev5", "line2"));
+                deviceDtos.add(new DeviceDto("dev6", "line2"));
+                deviceDtos.add(new DeviceDto("dev7", "line2"));
+                deviceDtos.add(new DeviceDto("dev8", "line2"));
+                deviceDtos.add(new DeviceDto("dev9", "line3"));
+                deviceDtos.add(new DeviceDto("dev10", "line3"));
+                deviceDtos.add(new DeviceDto("dev11", "line3"));
+                deviceDtos.add(new DeviceDto("dev12", "line3"));
+                deviceDtos.add(new DeviceDto("dev13", "line4"));
+                deviceDtos.add(new DeviceDto("dev14", "line4"));
+                deviceDtos.add(new DeviceDto("dev15", "line4"));
+                deviceDtos.add(new DeviceDto("dev16", "line4"));
                 List<OrderDto> orderDtos = new ArrayList<>();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-                Date startTime = dateFormat.parse("2020-11-01 11");
-                orderDtos.add(new OrderDto("1", false, 4, 7, dateFormat.parse("2020-11-02 09"),
-                                Arrays.asList("man1", "man2"), Arrays.asList("line1")));
-                orderDtos.add(new OrderDto("2", false, 4, 8, dateFormat.parse("2020-11-02 12"),
-                                Arrays.asList("man2", "man4"), Arrays.asList("line2")));
-                orderDtos.add(new OrderDto("3", false, 4, 6, dateFormat.parse("2020-11-02 14"),
+                Date startTime = dateFormat.parse("2020-10-11 11");
+                orderDtos.add(new OrderDto("1", false, 36, 7, dateFormat.parse("2020-11-02 09"),
+                                Arrays.asList("man10", "man11"), Arrays.asList("line3")));
+                orderDtos.add(new OrderDto("2", false, 48, 8, dateFormat.parse("2020-11-02 12"),
+                                Arrays.asList("man14", "man15"), Arrays.asList("line4")));
+                orderDtos.add(new OrderDto("3", false, 24, 6, dateFormat.parse("2020-11-02 14"),
                                 Arrays.asList("man3", "man4"), Arrays.asList("line1", "line2")));
                 service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
                 List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
                 System.out.println(orderProductionDtos.size());
-                assert(orderProductionDtos.size() >= 3);
+                assert (orderProductionDtos.size() >= 3);
         }
 
         @Test
@@ -88,7 +113,7 @@ public class ScheduleServiceTest {
                 service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
                 List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
                 System.out.println(orderProductionDtos.size());
-                assert(orderProductionDtos.size() >= 3);
+                assert (orderProductionDtos.size() >= 3);
                 // 插入订单
                 OrderDto urgentOrderDto = new OrderDto("4", true, 4, 8, dateFormat.parse("2020-11-02 07"),
                                 Arrays.asList("man1", "man2", "man3"), Arrays.asList("line1", "line2"));
@@ -96,6 +121,6 @@ public class ScheduleServiceTest {
                                 dateFormat.parse("2020-11-01 13"), startTime);
                 orderProductionDtos = service.getCurrentArrangment();
                 System.out.println(orderProductionDtos.size());
-                assert(orderProductionDtos.size() >= 4);
+                assert (orderProductionDtos.size() >= 4);
         }
 }

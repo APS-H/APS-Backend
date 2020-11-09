@@ -41,7 +41,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     static final Long millisecondCountPerHour = 60L * 60L * 1000L;
 
     // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-    static final int maxSuborderNeedTimeInHour = 6;
+    static final int maxSuborderNeedTimeInHour = 3;
 
     @Autowired
     private OrderProductionRepository orderProductionRepository;

@@ -94,14 +94,6 @@ public class Suborder {
         return !availableDeviceTypeIdList.contains(device.getDeviceTypeId());
     }
 
-    // 判断订单之间相交
-    public boolean suborderCross(Suborder b) {
-        // 还没分配 不可能相交
-        if (timeGrain == null || b.timeGrain == null)
-            return false;
-        return timeGrain == b.timeGrain;
-    }
-
     // 两个订单使用了多少组相同的人力资源
     public int manpowerCrossCount(Suborder b) {
         List<Manpower> selfManpowers = new ArrayList<>(10);

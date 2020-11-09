@@ -13,8 +13,8 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return new Constraint[] { urgentOrderDelay(constraintFactory), manpowerANotAvailable(constraintFactory),
                 manpowerBNotAvailable(constraintFactory), manpowerCNotAvailable(constraintFactory),
                 deviceNotAvailable(constraintFactory), manpowerOverlap(constraintFactory),
-                manpowerPeopleNotEnough(constraintFactory), softDelay(constraintFactory),
-                manpowerConflict(constraintFactory), deviceConflict(constraintFactory) };
+                manpowerPeopleNotEnough(constraintFactory), deviceConflict(constraintFactory),
+                softDelay(constraintFactory) };
     }
 
     private Constraint urgentOrderDelay(ConstraintFactory constraintFactory) {
@@ -61,6 +61,16 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return null;
     }
 
+    private Constraint manpowerBWorkTimeNotAvailable(ConstraintFactory constraintFactory) {
+        // 人力资源B在时间内不可工作
+        return null;
+    }
+
+    private Constraint manpowerCWorkTimeNotAvailable(ConstraintFactory constraintFactory) {
+        // 人力资源C在时间内不可工作
+        return null;
+    }
+
     private Constraint manpowerPeopleNotEnough(ConstraintFactory constraintFactory) {
         // 人数不够
         return constraintFactory.from(Suborder.class)
@@ -70,16 +80,18 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
     private Constraint manpowerConflict(ConstraintFactory constraintFactory) {
         // 同一时间段内人力冲突
-        return constraintFactory.from(Suborder.class).join(Suborder.class, Joiners.lessThan(Suborder::getId))
-                .filter(Suborder::suborderCross)
+        return constraintFactory.from(Suborder.class)
+                .join(Suborder.class, Joiners.lessThan(Suborder::getId), Joiners.equal(Suborder::getTimeGrain))
+                // TODO: manpower
                 .penalize("Manpower conflict", HardSoftScore.ONE_HARD, Suborder::manpowerCrossCount);
     }
 
     private Constraint deviceConflict(ConstraintFactory constraintFactory) {
         // 同一时间段内设备冲突
-        return constraintFactory.from(Suborder.class)
-                .join(Suborder.class, Joiners.lessThan(Suborder::getId), Joiners.equal(Suborder::getDevice))
-                .filter(Suborder::suborderCross).penalize("Device conflict", HardSoftScore.ONE_HARD);
+        return constraintFactory
+                .from(Suborder.class).join(Suborder.class, Joiners.lessThan(Suborder::getId),
+                        Joiners.equal(Suborder::getDevice), Joiners.equal(Suborder::getTimeGrain))
+                .penalize("Device conflict", HardSoftScore.ONE_HARD);
     }
 
     private Constraint softDelay(ConstraintFactory constraintFactory) {
