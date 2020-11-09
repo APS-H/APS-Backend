@@ -65,7 +65,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return constraintFactory
                 .from(Suborder.class).join(Suborder.class, Joiners.lessThan(Suborder::getId),
                         Joiners.equal(Suborder::getDevice), Joiners.equal(Suborder::getTimeGrain))
-                .penalize("Device conflict", HardSoftScore.ONE_HARD);
+                .penalize("Device conflict", HardSoftScore.ONE_SOFT); // TODO:
     }
 
     private Constraint softDelay(ConstraintFactory constraintFactory) {
