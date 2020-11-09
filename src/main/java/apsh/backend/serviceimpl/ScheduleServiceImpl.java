@@ -250,7 +250,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (Order order : orders)
             totalNeedHours += order.getNeedTimeInHour();
         // 延迟系数
-        float factor = 0.35f;
+        float factor = 1f;
         int availableTimeInHour = (int) (totalNeedHours / maxSuborderNeedTimeInHour * factor) + 5;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
         Calendar startTimeCalendar = Calendar.getInstance();

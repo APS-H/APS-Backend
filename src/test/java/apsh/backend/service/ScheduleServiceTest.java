@@ -38,35 +38,14 @@ public class ScheduleServiceTest {
         manpowerDtos.add(new ManpowerDto("man6", 5, dayTime));
         manpowerDtos.add(new ManpowerDto("man7", 5, dayTime));
         manpowerDtos.add(new ManpowerDto("man8", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man9", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man10", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man11", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man12", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man13", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man14", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man15", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man16", 5, dayTime));
-        manpowerDtos.add(new ManpowerDto("man17", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man18", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man19", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man20", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man21", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man22", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man23", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man24", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man25", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man26", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man27", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man28", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man29", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man30", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man31", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man32", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man33", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man34", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man35", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man36", 5, nightTime));
-        manpowerDtos.add(new ManpowerDto("man37", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man9", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man10", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man11", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man12", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man13", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man14", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man15", 5, nightTime));
+        manpowerDtos.add(new ManpowerDto("man16", 5, nightTime));
 
         List<DeviceDto> deviceDtos = new ArrayList<>();
         deviceDtos.add(new DeviceDto("dev1", "line1"));
@@ -85,35 +64,19 @@ public class ScheduleServiceTest {
         deviceDtos.add(new DeviceDto("dev14", "line4"));
         deviceDtos.add(new DeviceDto("dev15", "line4"));
         deviceDtos.add(new DeviceDto("dev16", "line4"));
-        deviceDtos.add(new DeviceDto("dev17", "line5"));
-        deviceDtos.add(new DeviceDto("dev18", "line5"));
-        deviceDtos.add(new DeviceDto("dev19", "line5"));
-        deviceDtos.add(new DeviceDto("dev20", "line5"));
-        deviceDtos.add(new DeviceDto("dev21", "line6"));
-        deviceDtos.add(new DeviceDto("dev22", "line6"));
-        deviceDtos.add(new DeviceDto("dev23", "line6"));
-        deviceDtos.add(new DeviceDto("dev24", "line6"));
-        deviceDtos.add(new DeviceDto("dev25", "line7"));
-        deviceDtos.add(new DeviceDto("dev26", "line7"));
-        deviceDtos.add(new DeviceDto("dev27", "line7"));
-        deviceDtos.add(new DeviceDto("dev28", "line7"));
-        deviceDtos.add(new DeviceDto("dev29", "line8"));
-        deviceDtos.add(new DeviceDto("dev30", "line8"));
-        deviceDtos.add(new DeviceDto("dev31", "line8"));
-        deviceDtos.add(new DeviceDto("dev32", "line8"));
         List<OrderDto> orderDtos = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-        Date startTime = dateFormat.parse("2020-10-11 11");
+        Date startTime = dateFormat.parse("2020-10-11 7");
         orderDtos.add(new OrderDto("order1", false, 36, 7, dateFormat.parse("2020-11-02 09"),
-                Arrays.asList("man10", "man11"), Arrays.asList("line3", "line8")));
+                Arrays.asList("man7", "man8", "man10", "man11"), Arrays.asList("line3", "line4")));
         orderDtos.add(new OrderDto("order2", false, 48, 8, dateFormat.parse("2020-11-02 12"),
-                Arrays.asList("man14", "man15"), Arrays.asList("line4", "line7")));
+                Arrays.asList("man5", "man6", "man14", "man15"), Arrays.asList("line1", "line2")));
         orderDtos.add(new OrderDto("order3", false, 24, 6, dateFormat.parse("2020-11-02 14"),
-                Arrays.asList("man3", "man4", "man25", "man27"), Arrays.asList("line1", "line2")));
+                Arrays.asList("man3", "man4", "man11", "man12"), Arrays.asList("line2", "line3")));
         orderDtos.add(new OrderDto("order4", false, 48, 8, dateFormat.parse("2020-11-02 14"),
-                Arrays.asList("man1", "man2", "man30", "man31"), Arrays.asList("line7", "line8")));
+                Arrays.asList("man1", "man2", "man12", "man13"), Arrays.asList("line1", "line4")));
         orderDtos.add(new OrderDto("order5", false, 60, 9, dateFormat.parse("2020-11-02 14"),
-                Arrays.asList("man1", "man3"), Arrays.asList("line6", "line8")));
+                Arrays.asList("man1", "man3", "man9", "man10"), Arrays.asList("line1", "line3")));
         service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
         List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
         System.out.println(orderProductionDtos.size());

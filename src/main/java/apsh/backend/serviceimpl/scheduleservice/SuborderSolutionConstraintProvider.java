@@ -13,7 +13,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return new Constraint[] { urgentOrderDelay(constraintFactory), manpowerNotAvailable(constraintFactory),
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
                 manpowerOverlap(constraintFactory), manpowerPeopleNotEnough(constraintFactory),
-                deviceConflict(constraintFactory), softDelay(constraintFactory) };
+                manpowerConflict(constraintFactory), deviceConflict(constraintFactory), softDelay(constraintFactory) };
     }
 
     private Constraint urgentOrderDelay(ConstraintFactory constraintFactory) {
@@ -57,7 +57,6 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         // 同一时间段内人力冲突
         return constraintFactory.from(Suborder.class)
                 .join(Suborder.class, Joiners.lessThan(Suborder::getId), Joiners.equal(Suborder::getTimeGrain))
-                // TODO: manpower
                 .penalize("Manpower conflict", HardSoftScore.ONE_HARD, Suborder::manpowerCrossCount);
     }
 

@@ -9,4 +9,5 @@ time-server-url: /usr/local/apsh-ts  # 系统起始时间 和 时间流动系数
 optaplanner:
   solver:
     termination:
-      spent-limit: 30s
+      spent-limit: 120m
+      best-score-limit: 0hard/*soft

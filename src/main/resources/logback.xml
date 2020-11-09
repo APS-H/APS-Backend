@@ -55,7 +55,7 @@
     </appender>
 
     <logger name="org.drools" level="WARN" />
-    <logger name="org.optaplanner" level="WARN"/>
+    <logger name="org.optaplanner" level="DEBUG"/>
     <logger name="com.lanou3g.spring" level="DEBUG"/>
     <logger name="org.springframework" level="ERROR"/>
 
