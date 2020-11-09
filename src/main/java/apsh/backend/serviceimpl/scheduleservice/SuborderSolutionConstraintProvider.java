@@ -56,8 +56,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
     private Constraint manpowerConflict(ConstraintFactory constraintFactory) {
         // 同一时间段内人力冲突
         return constraintFactory.from(Suborder.class)
-                .join(Suborder.class, Joiners.lessThan(Suborder::getId), Joiners.equal(Suborder::getTimeGrain),
-                        Joiners.equal(Suborder::getManpowerA))
+                .join(Suborder.class, Joiners.lessThan(Suborder::getId), Joiners.equal(Suborder::getTimeGrain))
                 // TODO: manpower
                 .penalize("Manpower conflict", HardSoftScore.ONE_HARD, Suborder::manpowerCrossCount);
     }
