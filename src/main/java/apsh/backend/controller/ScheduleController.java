@@ -1,5 +1,10 @@
 package apsh.backend.controller;
 
+import apsh.backend.service.ScheduleService;
+import apsh.backend.util.LogFormatter;
+import apsh.backend.util.LogFormatterImpl;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,29 +22,47 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping(value = "/schedule")
 public class ScheduleController {
+
+    private final ScheduleService scheduleService;
+    private final LogFormatter logger;
+
+    @Autowired
+    public ScheduleController(ScheduleService scheduleService) {
+        this.scheduleService = scheduleService;
+        this.logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderController.class));
+    }
+
     @GetMapping(value = "/plan-table")
     public List<SchedulePlanTableOrderVo> getPlanTable(@RequestParam Integer pageSize, @RequestParam Integer pageNum) {
-        // TODO:
-        return null;
+        logger.infoControllerRequest("GET", "/plan-table", "pageSize=" + pageSize + ", pageNum=" + pageNum);
+        List<SchedulePlanTableOrderVo> SPTOVOS=scheduleService.getPlanTable();
+        int start = pageSize * (pageNum - 1);
+        int end = pageSize * pageNum;
+        logger.infoControllerResponse("GET", "/plan-table", SPTOVOS.subList(start,end));
+        return SPTOVOS.subList(start,end);
     }
 
     @GetMapping(value = "/order-production-table")
     public List<ScheduleOrderProductionTableRelationVo> getOrderProductionTable(@RequestParam Integer pageSize,
-            @RequestParam Integer pageNum) {
-        // TODO:
-        return null;
+                                                                                @RequestParam Integer pageNum) {
+        logger.infoControllerRequest("GET", "/order-production-table", "pageSize=" + pageSize + ", pageNum=" + pageNum);
+        List<ScheduleOrderProductionTableRelationVo> SPTRVOS=scheduleService.getOrderProductionTable();
+        int start = pageSize * (pageNum - 1);
+        int end = pageSize * pageNum;
+        logger.infoControllerResponse("GET", "/order-production-table", SPTRVOS.subList(start,end));
+        return SPTRVOS.subList(start,end);
     }
 
     @GetMapping(value = "/production-table")
     public List<ScheduleProductionTableProductionVo> getProductionTable(@RequestParam Integer pageSize,
-            @RequestParam Integer pageNum) {
-        // TODO:
+                                                                        @RequestParam Integer pageNum) {
+
         return null;
     }
 
     @GetMapping(value = "/production-resource-table")
     public List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable(@RequestParam Integer pageSize,
-            @RequestParam Integer pageNum) {
+                                                                                        @RequestParam Integer pageNum) {
         // TODO:
         return null;
     }

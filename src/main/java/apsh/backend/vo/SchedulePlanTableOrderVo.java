@@ -1,5 +1,7 @@
 package apsh.backend.vo;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -10,7 +12,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SchedulePlanTableOrderVo {
-    String orderId;
-    Boolean isSplit;
+    Integer id;
+    String orderNo;
+    Boolean isSplit;              // 原则上，schedules长度为1 等价于 isSplit为true
+    Integer productNum;              // 该订单产品总数
+    Date startTime;      // 该订单开始时间
+    Date endTime;
     List<ScheduleInSchedulePlanTableOrderVo> schedules;
+
+    public SchedulePlanTableOrderVo(Integer id, String orderNo, Integer productNum) {
+        this.id = id;
+        this.orderNo = orderNo;
+        this.productNum = productNum;
+        this.schedules=new ArrayList<ScheduleInSchedulePlanTableOrderVo>();
+    }
+
+    public void addSchedule(ScheduleInSchedulePlanTableOrderVo newSchedule){
+        schedules.add(newSchedule);
+    }
 }

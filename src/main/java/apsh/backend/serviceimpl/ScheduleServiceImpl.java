@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import apsh.backend.service.LegacySystemService;
+import apsh.backend.vo.*;
 import org.optaplanner.core.api.solver.SolverJob;
 import org.optaplanner.core.api.solver.SolverManager;
 import org.optaplanner.core.api.solver.SolverStatus;
@@ -60,6 +62,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     private boolean stateJobSubmitted = false;
     // 当前的排程任务是否持久化
     private boolean stateSolutionSaved = false;
+
+    private final  LegacySystemService legacySystemService;
+    @Autowired
+    public ScheduleServiceImpl(LegacySystemServiceImpl legacySystemService) {
+        this.legacySystemService = legacySystemService;
+    }
+
 
     @PostConstruct
     private void init() {
@@ -240,6 +249,45 @@ public class ScheduleServiceImpl implements ScheduleService {
         saveInputAndSolution();
         stateSolutionSaved = true;
         return solutionDto;
+    }
+
+    @Override
+    public List<SchedulePlanTableOrderVo> getPlanTable() {
+        List<apsh.backend.po.Order> allOrders=legacySystemService.getAllOrders();
+        List<SchedulePlanTableOrderVo> SPOVOList=allOrders.stream().map(apsh.backend.po.Order::getScheduleProductionTableProductionVo).collect(Collectors.toList());
+        for(OrderProduction OP:orderProductionRepository.findAll()){
+           String orderId= OP.getOrderId();
+           for(SchedulePlanTableOrderVo SPOVO:SPOVOList){
+               if(orderId.equals(SPOVO.getOrderNo())){
+                   SPOVO.addSchedule(OP.getScheduleInSchedulePlanTableOrderVo());
+               }
+
+           }
+
+
+        }
+
+        return SPOVOList;
+    }
+
+    @Override
+    public List<ScheduleOrderProductionTableRelationVo> getOrderProductionTable() {
+        List<ScheduleOrderProductionTableRelationVo> SOPTRVOList = new ArrayList<>();
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            SOPTRVOList.addAll(OP.getScheduleOrderProductionTableRelationVoS());
+
+        }
+        return SOPTRVOList;
+    }
+
+    @Override
+    public List<ScheduleProductionTableProductionVo> getProductionTable() {
+        return null;
+    }
+
+    @Override
+    public List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable() {
+        return null;
     }
 
     /**
