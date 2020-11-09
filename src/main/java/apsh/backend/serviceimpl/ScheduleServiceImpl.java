@@ -256,8 +256,21 @@ public class ScheduleServiceImpl implements ScheduleService {
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
         int startHourOfDay = startTimeCalendar.get(Calendar.HOUR_OF_DAY);
+        Calendar tempCalendar = Calendar.getInstance();
+        int tempDayOfWeek = -1;
         for (int i = 0; i < availableTimeInHour; i++) {
             Date date = new Date(startTime.getTime() + i * maxSuborderNeedTimeInHour * millisecondCountPerHour);
+            // 周末不上班
+            tempCalendar.setTime(date);
+            tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+                continue;
+            Date endDate = new Date(date.getTime() + maxSuborderNeedTimeInHour * millisecondCountPerHour);
+            tempCalendar.setTime(endDate);
+            tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+                continue;
+            // 添加时间粒度
             timeGrains.add(new TimeGrain(i, date, startHourOfDay));
             startHourOfDay = (startHourOfDay + maxSuborderNeedTimeInHour) % 24;
         }
