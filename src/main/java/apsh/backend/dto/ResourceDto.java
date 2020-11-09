@@ -28,7 +28,6 @@ public class ResourceDto {
     private Integer resourceType;
     private Shift shift;
     private List<ProductInResourceUseVo> usedTimeList;
-    private Boolean isDefault=true;
     public ResourceDto(Human po) {
         this.resourceId = String.valueOf(po.getId());
         this.resourceName = po.getGroupName();
@@ -36,20 +35,10 @@ public class ResourceDto {
         this.shift = po.getDailySchedule();
         this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String beginTime = "2018-07-28 14:42:32";
-        String endTime = "2018-07-28 19:42:32";
-        try {
-            ProductInResourceUseVo Default = new ProductInResourceUseVo(300098, format.parse(beginTime), format.parse(endTime), false);
-            this.usedTimeList.add(Default);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
-    public void init(){
-        this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
-    }
+
 
     public ResourceDto(Equipment po) {
         this.resourceId = String.valueOf(po.getId());
@@ -58,22 +47,10 @@ public class ResourceDto {
         this.shift=po.getDailySchedule();
         this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String beginTime = "2018-07-28 14:42:32";
-        String endTime = "2018-07-28 19:42:32";
-        try {
-            ProductInResourceUseVo Default = new ProductInResourceUseVo(300098, format.parse(beginTime), format.parse(endTime), false);
-            this.usedTimeList.add(Default);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
     public void  addUsedTime(SuborderProduction SOP,int stock_id){
-        if(this.isDefault){
-            this.isDefault=false;
-            this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
-        }
         Date date1 = Date.from(SOP.getStartTime());
         Date date2 = Date.from(SOP.getEndTime());
         ProductInResourceUseVo newTime=new ProductInResourceUseVo(stock_id,date1,date2,false);

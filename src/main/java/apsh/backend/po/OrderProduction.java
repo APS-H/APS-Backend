@@ -41,14 +41,14 @@ public class OrderProduction {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
 
 
-        return origin.stream().filter(s -> {
+        origin= origin.stream().filter(s -> {
             Date date1 = Date.from(s.getStartTime());
-            Date date2 = Date.from(s.getEndTime());
 
 
-            return DateUtils.isSameDay(date, date1) && DateUtils.isSameDay(date, date2);
+            return DateUtils.isSameDay(date, date1) ;
         }).collect(Collectors.toList());
 
+        return origin;
     }
 
 
