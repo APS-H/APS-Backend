@@ -1,6 +1,6 @@
 package apsh.backend.po;
 
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -29,11 +29,12 @@ public class SuborderProduction {
     @Column(name = "suborder_id")
     private String suborderId;
 
+    // TODO: 他妈的
     @Column(name = "start_time")
-    private Instant startTime;
+    private Timestamp startTime;
 
     @Column(name = "end_time")
-    private Instant endTime;
+    private Timestamp endTime;
 
     @Column(name = "manpower_ids")
     @Convert(converter = StringListConverter.class)
@@ -42,8 +43,8 @@ public class SuborderProduction {
     @Column(name = "device_id")
     private String deviceId;
 
-    public long getWorkTime(){
-      return   ChronoUnit.MINUTES.between(endTime, startTime);
+    public long getWorkTime() {
+        return ChronoUnit.MINUTES.between(endTime.toLocalDateTime(), startTime.toLocalDateTime());
     };
 
 }

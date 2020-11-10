@@ -1,5 +1,6 @@
 package apsh.backend.serviceimpl;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,12 +64,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     // 当前的排程任务是否持久化
     private boolean stateSolutionSaved = false;
 
-    private final  LegacySystemService legacySystemService;
+    private final LegacySystemService legacySystemService;
+
     @Autowired
     public ScheduleServiceImpl(LegacySystemServiceImpl legacySystemService) {
         this.legacySystemService = legacySystemService;
     }
-
 
     @PostConstruct
     private void init() {
@@ -81,8 +82,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             List<SuborderProductionDto> suborderProductionDtos = new ArrayList<>(
                     orderProductionPo.getSuborderProductions().size());
             for (SuborderProduction po : orderProductionPo.getSuborderProductions())
-                suborderProductionDtos.add(new SuborderProductionDto(po.getSuborderId(), Date.from(po.getStartTime()),
-                        Date.from(po.getEndTime()), new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
+                suborderProductionDtos.add(new SuborderProductionDto(po.getSuborderId(),
+                        new Date(po.getStartTime().getTime()), new Date(po.getEndTime().getTime()),
+                        new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
             OrderProductionDto dto = new OrderProductionDto(orderProductionPo.getOrderId(), suborderProductionDtos);
             solutionDto.add(dto);
         }
@@ -253,17 +255,17 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<SchedulePlanTableOrderVo> getPlanTable() {
-        List<apsh.backend.po.Order> allOrders=legacySystemService.getAllOrders();
-        List<SchedulePlanTableOrderVo> SPOVOList=allOrders.stream().map(apsh.backend.po.Order::getScheduleProductionTableProductionVo).collect(Collectors.toList());
-        for(OrderProduction OP:orderProductionRepository.findAll()){
-           String orderId= OP.getOrderId();
-           for(SchedulePlanTableOrderVo SPOVO:SPOVOList){
-               if(orderId.equals(SPOVO.getOrderNo())){
-                   SPOVO.addSchedule(OP.getScheduleInSchedulePlanTableOrderVo());
-               }
+        List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
+        List<SchedulePlanTableOrderVo> SPOVOList = allOrders.stream()
+                .map(apsh.backend.po.Order::getScheduleProductionTableProductionVo).collect(Collectors.toList());
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            String orderId = OP.getOrderId();
+            for (SchedulePlanTableOrderVo SPOVO : SPOVOList) {
+                if (orderId.equals(SPOVO.getOrderNo())) {
+                    SPOVO.addSchedule(OP.getScheduleInSchedulePlanTableOrderVo());
+                }
 
-           }
-
+            }
 
         }
 
@@ -386,9 +388,10 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (OrderProductionDto orderProductionDto : solutionDto) {
             Set<SuborderProduction> suborderProductionPos = new HashSet<>(orderProductionDto.getSuborders().size());
             for (SuborderProductionDto dto : orderProductionDto.getSuborders()) {
-                Instant startInstant = (dto.getStartTime() == null) ? null : dto.getStartTime().toInstant();
-                Instant endInstant = (dto.getEndTime() == null) ? null : dto.getEndTime().toInstant();
-                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), startInstant, endInstant,
+                Timestamp startTimestamp = (dto.getStartTime() == null) ? null
+                        : new Timestamp(dto.getStartTime().getTime());
+                Timestamp endTimestamp = (dto.getEndTime() == null) ? null : new Timestamp(dto.getEndTime().getTime());
+                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), startTimestamp, endTimestamp,
                         dto.getManpowerIds(), dto.getDeviceId()));
             }
             orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(), suborderProductionPos));

@@ -42,10 +42,8 @@ public class OrderProduction {
     public List<SuborderProduction> getSuborderProductionsByDate(Date date) {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
 
-
         origin = origin.stream().filter(s -> {
-            Date date1 = Date.from(s.getStartTime());
-
+            Date date1 = new Date(s.getStartTime().getTime());
 
             return DateUtils.isSameDay(date, date1);
         }).collect(Collectors.toList());
@@ -56,7 +54,7 @@ public class OrderProduction {
     public OrderInOrderProgressVo getOrderInOrderProgress(Date date) {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
         origin = origin.stream().sorted((t1, t2) -> {
-            if (t2.getStartTime().isAfter(t1.getStartTime())) {
+            if (t2.getStartTime().after(t1.getStartTime())) {
                 return 1;
 
             } else {
@@ -64,14 +62,14 @@ public class OrderProduction {
             }
         }).collect(Collectors.toList());
 
-        long total = origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream().mapToLong(o -> o).sum();
+        long total = origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream()
+                .mapToLong(o -> o).sum();
 
         long work = origin.stream().filter(s -> {
-            //Date date1 = Date.from(s.getStartTime());
-            Date date2 = Date.from(s.getEndTime());
+            // Date date1 = new Date(s.getStartTime().getTime());
+            Date date2 = new Date(s.getEndTime().getTime());
             return date.compareTo(date2) >= 0;
-        }).collect(Collectors.toList())
-                .stream().mapToLong(o -> o.getWorkTime()).sum();
+        }).collect(Collectors.toList()).stream().mapToLong(o -> o.getWorkTime()).sum();
 
         Double rate = ((double) work) / total;
         OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, 1.0, false);
@@ -79,46 +77,44 @@ public class OrderProduction {
 
     }
 
-    public Date getStartTime(){
+    public Date getStartTime() {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
-        origin=origin.stream().sorted((t1,t2)->{
-            Date date1 = Date.from(t1.getStartTime());
-            Date date2 = Date.from(t2.getStartTime());
+        origin = origin.stream().sorted((t1, t2) -> {
+            Date date1 = new Date(t1.getStartTime().getTime());
+            Date date2 = new Date(t2.getStartTime().getTime());
 
             return date1.compareTo(date2);
         }).collect(Collectors.toList());
 
-        return Date.from(origin.get(0).getStartTime());
+        return new Date(origin.get(0).getStartTime().getTime());
     }
 
-    public Date getEndTime(){
+    public Date getEndTime() {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
-        origin=origin.stream().sorted((t1,t2)->{
-            Date date1 = Date.from(t1.getStartTime());
-            Date date2 = Date.from(t2.getStartTime());
+        origin = origin.stream().sorted((t1, t2) -> {
+            Date date1 = new Date(t1.getStartTime().getTime());
+            Date date2 = new Date(t2.getStartTime().getTime());
 
             return date1.compareTo(date2);
         }).collect(Collectors.toList());
 
-        return Date.from(origin.get(origin.size()-1).getEndTime());
+        return new Date(origin.get(origin.size() - 1).getEndTime().getTime());
     }
 
-    public ScheduleInSchedulePlanTableOrderVo getScheduleInSchedulePlanTableOrderVo(){
-        ScheduleInSchedulePlanTableOrderVo s=new ScheduleInSchedulePlanTableOrderVo(id,100,getStartTime(),getEndTime());
+    public ScheduleInSchedulePlanTableOrderVo getScheduleInSchedulePlanTableOrderVo() {
+        ScheduleInSchedulePlanTableOrderVo s = new ScheduleInSchedulePlanTableOrderVo(id, 100, getStartTime(),
+                getEndTime());
         return s;
     }
 
-
-    public List<ScheduleOrderProductionTableRelationVo> getScheduleOrderProductionTableRelationVoS(){
+    public List<ScheduleOrderProductionTableRelationVo> getScheduleOrderProductionTableRelationVoS() {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
-        List<ScheduleOrderProductionTableRelationVo> SOPTRVOS=origin.stream().map(o->{
-            ScheduleOrderProductionTableRelationVo s=new ScheduleOrderProductionTableRelationVo(orderId,true,o.getSuborderId());
+        List<ScheduleOrderProductionTableRelationVo> SOPTRVOS = origin.stream().map(o -> {
+            ScheduleOrderProductionTableRelationVo s = new ScheduleOrderProductionTableRelationVo(orderId, true,
+                    o.getSuborderId());
             return s;
         }).collect(Collectors.toList());
 
         return SOPTRVOS;
     }
 }
-
-
-

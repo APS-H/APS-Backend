@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,6 +29,7 @@ public class ResourceDto {
     private Integer resourceType;
     private Shift shift;
     private List<ProductInResourceUseVo> usedTimeList;
+
     public ResourceDto(Human po) {
         this.resourceId = String.valueOf(po.getId());
         this.resourceName = po.getGroupName();
@@ -35,45 +37,42 @@ public class ResourceDto {
         this.shift = po.getDailySchedule();
         this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
 
-
     }
-
-
 
     public ResourceDto(Equipment po) {
         this.resourceId = String.valueOf(po.getId());
         this.resourceName = po.getName();
         this.resourceType = 1;
-        this.shift=po.getDailySchedule();
+        this.shift = po.getDailySchedule();
         this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
-
 
     }
 
-    public void  addUsedTime(SuborderProduction SOP,int stock_id){
-        Date date1 = Date.from(SOP.getStartTime());
-        Date date2 = Date.from(SOP.getEndTime());
-        ProductInResourceUseVo newTime=new ProductInResourceUseVo(stock_id,date1,date2,false);
+    public void addUsedTime(SuborderProduction SOP, int stock_id) {
+        Date date1 = new Date(SOP.getStartTime().getTime());
+        Date date2 = new Date(SOP.getEndTime().getTime());
+        ProductInResourceUseVo newTime = new ProductInResourceUseVo(stock_id, date1, date2, false);
         usedTimeList.add(newTime);
     }
 
-    public ResourceUseVo getResourceUseVo(){
-        ResourceUseVo  data=new ResourceUseVo(resourceId,resourceName,resourceType,usedTimeList);
+    public ResourceUseVo getResourceUseVo() {
+        ResourceUseVo data = new ResourceUseVo(resourceId, resourceName, resourceType, usedTimeList);
         return data;
     }
 
-    public ResourceInResourceLoadVo getResourceLoad(){
-        ResourceInResourceLoadVo resourceInResourceLoadVo=new ResourceInResourceLoadVo(resourceName,getLoad());
+    public ResourceInResourceLoadVo getResourceLoad() {
+        ResourceInResourceLoadVo resourceInResourceLoadVo = new ResourceInResourceLoadVo(resourceName, getLoad());
 
         return resourceInResourceLoadVo;
     }
-    public double getLoad(){
-        int usedTime=0;
-        for(ProductInResourceUseVo i:usedTimeList){
-            usedTime=(int)(usedTime+i.getEndTime().getTime()-i.getStartTime().getTime());
+
+    public double getLoad() {
+        int usedTime = 0;
+        for (ProductInResourceUseVo i : usedTimeList) {
+            usedTime = (int) (usedTime + i.getEndTime().getTime() - i.getStartTime().getTime());
         }
-        int workTime=(int)(shift.getEndTime().getTime()-shift.getStartTime().getTime());
-        double load=usedTime/workTime;
+        int workTime = (int) (shift.getEndTime().getTime() - shift.getStartTime().getTime());
+        double load = usedTime / workTime;
         return load;
     }
 
