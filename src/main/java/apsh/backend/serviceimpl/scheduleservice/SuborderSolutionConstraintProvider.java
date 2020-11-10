@@ -24,13 +24,13 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
     private Constraint manpowerNotAvailable(ConstraintFactory constraintFactory) {
         // 人力资源不可用
-        return constraintFactory.from(Suborder.class).penalize("Manpower A not available", HardSoftScore.ONE_HARD,
-                Suborder::manpowerNotAvailableCount);
+        return constraintFactory.from(Suborder.class).penalize("Manpower not available", HardSoftScore.ONE_HARD,
+                Suborder::manpowerNotAvailableCountMul2);
     }
 
     private Constraint deviceNotAvailable(ConstraintFactory constraintFactory) {
         // 设备不可用
-        return constraintFactory.from(Suborder.class).filter(suborder -> suborder.deviceNotAvailable())
+        return constraintFactory.from(Suborder.class).filter(Suborder::deviceNotAvailable)
                 .penalize("Device not available", HardSoftScore.ONE_HARD);
     }
 
@@ -38,6 +38,12 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         // 人力资源重复使用
         return constraintFactory.from(Suborder.class).penalize("Manpower overlap", HardSoftScore.ONE_HARD,
                 Suborder::manpowerOverlapCount);
+    }
+
+    private Constraint manpowerCannotWorkTogether(ConstraintFactory constraintFactory) {
+        // 同组内的人力资源工作时间不相同 不能同时工作 用于加速搜索
+        return constraintFactory.from(Suborder.class).filter(Suborder::manpowerCannotWorkTogether)
+                .penalize("Manpower can not work together", HardSoftScore.ONE_HARD);
     }
 
     private Constraint manpowerWorkTimeNotAvailable(ConstraintFactory constraintFactory) {
@@ -65,7 +71,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return constraintFactory
                 .from(Suborder.class).join(Suborder.class, Joiners.lessThan(Suborder::getId),
                         Joiners.equal(Suborder::getDevice), Joiners.equal(Suborder::getTimeGrain))
-                .penalize("Device conflict", HardSoftScore.ONE_SOFT); // TODO:
+                .penalize("Device conflict", HardSoftScore.ONE_HARD);
     }
 
     private Constraint softDelay(ConstraintFactory constraintFactory) {

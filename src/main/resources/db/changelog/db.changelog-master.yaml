@@ -180,10 +180,10 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: start_time
-                  type: time
+                  type: datetime
               - column:
                   name: end_time
-                  type: time
+                  type: datetime
               - column:
                   name: manpower_ids
                   type: varchar(50)

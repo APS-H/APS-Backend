@@ -81,8 +81,8 @@ public class Suborder {
         return res;
     }
 
-    // 人力资源不可用的总数
-    public int manpowerNotAvailableCount() {
+    // 人力资源不可用的总数乘二 因为人力资源可用的优先级高于人数
+    public int manpowerNotAvailableCountMul2() {
         int count = 0;
         if (manpowerA != null && !availableManpowerIdSet.contains(manpowerA.getId()))
             count++;
@@ -90,7 +90,26 @@ public class Suborder {
             count++;
         if (manpowerC != null && !availableManpowerIdSet.contains(manpowerC.getId()))
             count++;
-        return count;
+        return count * 2;
+    }
+
+    // 选择了两个以上的组但是不能同时工作
+    public boolean manpowerCannotWorkTogether() {
+        boolean hasDay = false;
+        boolean hasNight = false;
+        if (manpowerA != null) {
+            hasDay = manpowerA.getWorkSections().size() == 1;
+            hasNight = manpowerA.getWorkSections().size() != 1;
+        }
+        if (manpowerB != null) {
+            hasDay = manpowerB.getWorkSections().size() == 1;
+            hasNight = manpowerB.getWorkSections().size() != 1;
+        }
+        if (manpowerC != null) {
+            hasDay = manpowerC.getWorkSections().size() == 1;
+            hasNight = manpowerC.getWorkSections().size() != 1;
+        }
+        return hasDay && hasNight;
     }
 
     // 人力资源不能工作的总数
@@ -98,11 +117,11 @@ public class Suborder {
         if (timeGrain == null)
             return 0;
         int count = 0;
-        if (manpowerA != null && !manpowerA.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+        if (manpowerA != null && !manpowerA.canWork(timeGrain.getHourOfDay()))
             count++;
-        if (manpowerB != null && !manpowerB.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+        if (manpowerB != null && !manpowerB.canWork(timeGrain.getHourOfDay()))
             count++;
-        if (manpowerC != null && !manpowerC.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+        if (manpowerC != null && !manpowerC.canWork(timeGrain.getHourOfDay()))
             count++;
         return count;
     }
