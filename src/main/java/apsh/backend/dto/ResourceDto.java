@@ -8,11 +8,13 @@ import apsh.backend.vo.ProductInResourceUseVo;
 import apsh.backend.vo.ResourceInResourceLoadVo;
 import apsh.backend.vo.ResourceLoadVo;
 import apsh.backend.vo.ResourceUseVo;
+import liquibase.pro.packaged.D;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,14 +28,17 @@ public class ResourceDto {
     private Integer resourceType;
     private Shift shift;
     private List<ProductInResourceUseVo> usedTimeList;
-
     public ResourceDto(Human po) {
         this.resourceId = String.valueOf(po.getId());
         this.resourceName = po.getGroupName();
         this.resourceType = 0;
-        this.shift=po.getDailySchedule();
+        this.shift = po.getDailySchedule();
         this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
+
+
     }
+
+
 
     public ResourceDto(Equipment po) {
         this.resourceId = String.valueOf(po.getId());
@@ -41,6 +46,8 @@ public class ResourceDto {
         this.resourceType = 1;
         this.shift=po.getDailySchedule();
         this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
+
+
     }
 
     public void  addUsedTime(SuborderProduction SOP,int stock_id){

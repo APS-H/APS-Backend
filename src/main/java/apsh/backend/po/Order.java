@@ -1,6 +1,7 @@
 package apsh.backend.po;
 
 import apsh.backend.dto.CustomerOrderDto;
+import apsh.backend.vo.SchedulePlanTableOrderVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -53,4 +54,10 @@ public class Order {
         this.productCount = order.getCount();
     }
 
+
+    public SchedulePlanTableOrderVo getScheduleProductionTableProductionVo(){
+        SchedulePlanTableOrderVo s=new SchedulePlanTableOrderVo(id,String.valueOf(id),productCount);
+        return s;
+
+    }
 }

@@ -5,11 +5,13 @@ import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
 import apsh.backend.po.Order;
 import apsh.backend.service.LegacySystemService;
+
 import apsh.backend.serviceimpl.webservices.ERPService;
 import apsh.backend.serviceimpl.webservices.ERPServiceService;
 import apsh.backend.serviceimpl.webservices.Product;
 import apsh.backend.serviceimpl.webservices.order.OrderService;
 import apsh.backend.serviceimpl.webservices.order.OrderServiceService;
+
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.springframework.stereotype.Service;
@@ -96,13 +98,16 @@ public class LegacySystemServiceImpl implements LegacySystemService {
             List<Equipment> allEquipments = new ArrayList<Equipment>();
             Field fieldName = resources.get(0).getClass().getDeclaredField("name");
             fieldName.setAccessible(true);
-            Field fieldCount = resources.get(0).getClass().getDeclaredField("count");
-            fieldCount.setAccessible(true);
+
 
             for (Object o : resources) {
                 if (fieldName.get(o).equals("线体") || fieldName.get(o).equals("设备")) {
-                    Equipment equipment = new Equipment(o);
-                    allEquipments.add(equipment);
+
+
+                        Equipment equipment = new Equipment(o);
+                        allEquipments.add(equipment);
+
+
                 }
             }
             return allEquipments;
@@ -124,4 +129,8 @@ public class LegacySystemServiceImpl implements LegacySystemService {
         }
         return null;
     }
+
+
+
+
 }

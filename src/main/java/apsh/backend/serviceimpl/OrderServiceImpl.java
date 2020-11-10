@@ -7,12 +7,14 @@ import apsh.backend.dto.OrderDto;
 import apsh.backend.enums.OrderStatus;
 import apsh.backend.po.Craft;
 import apsh.backend.po.Order;
+import apsh.backend.po.OrderProduction;
 import apsh.backend.po.SuborderProduction;
 import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.*;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
+import apsh.backend.vo.OrderInOrderProgressVo;
 import apsh.backend.vo.OrderProgressVo;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,9 +129,15 @@ public class OrderServiceImpl implements OrderService, GodService {
     @Override
 
     public OrderProgressVo getOrderProgress(Date date) {
-
-
-        return null;
+        List<OrderProduction> orderProductions = orderProductionRepository.findAll();
+        List<OrderInOrderProgressVo> progress = orderProductions.parallelStream()
+                .map(o -> {
+                        return o.getOrderInOrderProgress(date);
+                    })
+                .collect(Collectors.toList());
+        OptionalDouble totalrate=progress.stream().mapToDouble(o-> o.getAssembleRate()).average();
+        OrderProgressVo OPVO=new OrderProgressVo(totalrate.getAsDouble(),progress);
+        return OPVO;
     }
 
     public void add(CustomerOrderDto order) {

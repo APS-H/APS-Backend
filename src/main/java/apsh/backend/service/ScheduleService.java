@@ -7,6 +7,11 @@ import apsh.backend.dto.ManpowerDto;
 import apsh.backend.dto.DeviceDto;
 import apsh.backend.dto.OrderDto;
 import apsh.backend.dto.OrderProductionDto;
+import apsh.backend.vo.ScheduleOrderProductionTableRelationVo;
+import apsh.backend.vo.SchedulePlanTableOrderVo;
+import apsh.backend.vo.ScheduleProductionResourceTableProductionVo;
+import apsh.backend.vo.ScheduleProductionTableProductionVo;
+import org.springframework.web.bind.annotation.RequestParam;
 
 public interface ScheduleService {
         /**
@@ -37,4 +42,13 @@ public interface ScheduleService {
          * 阻塞式获取排程结果
          */
         List<OrderProductionDto> getCurrentArrangment();
+
+
+        List<SchedulePlanTableOrderVo> getPlanTable();
+
+        List<ScheduleOrderProductionTableRelationVo> getOrderProductionTable();
+
+        List<ScheduleProductionTableProductionVo> getProductionTable();
+
+        List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable();
 }
