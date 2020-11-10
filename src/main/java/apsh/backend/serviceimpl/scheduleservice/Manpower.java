@@ -18,6 +18,13 @@ public class Manpower {
     @NonNull
     private List<TimeSection> workSections;
 
+    // TODO: 早班晚班特判
+    public boolean canWork(int startHourOfDay) {
+        boolean day = workSections.size() == 1;
+        boolean canWorkInDay = 7 <= startHourOfDay && startHourOfDay < 19;
+        return day ? canWorkInDay : !canWorkInDay;
+    }
+
     public boolean canWork(int startHourOfDay, int workTimeInHour) {
         while (startHourOfDay + workTimeInHour > 24) {
             TimeSection section = new TimeSection(startHourOfDay, 24);

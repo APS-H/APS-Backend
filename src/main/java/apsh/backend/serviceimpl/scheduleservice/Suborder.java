@@ -117,11 +117,11 @@ public class Suborder {
         if (timeGrain == null)
             return 0;
         int count = 0;
-        if (manpowerA != null && !manpowerA.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+        if (manpowerA != null && !manpowerA.canWork(timeGrain.getHourOfDay()))
             count++;
-        if (manpowerB != null && !manpowerB.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+        if (manpowerB != null && !manpowerB.canWork(timeGrain.getHourOfDay()))
             count++;
-        if (manpowerC != null && !manpowerC.canWork(timeGrain.getHourOfDay(), needTimeInHour))
+        if (manpowerC != null && !manpowerC.canWork(timeGrain.getHourOfDay()))
             count++;
         return count;
     }
