@@ -29,7 +29,7 @@ public class Order {
     private HashSet<String> availableDeviceTypeIdSet;
 
     public static Order fromDto(OrderDto dto) {
-        return new Order(dto.getId(), dto.getUrgent(), 12 /* TODO: dto.getNeedTimeInHour() */, dto.getNeedPeopleCount(),
+        return new Order(dto.getId(), dto.getUrgent(), dto.getNeedTimeInHour(), dto.getNeedPeopleCount(),
                 dto.getDeadline(), new HashSet<>(dto.getAvailableManpowerIdList()),
                 new HashSet<>(dto.getAvailableDeviceTypeIdList()));
     }
