@@ -47,8 +47,8 @@ public enum ShiftType {
         if ("早班".equals(values)) {
             Shift s = new Shift();
             s.setName(values);
-            s.setStartTime(new Time(0, 0, 0));
-            s.setEndTime(new Time(7, 0, 0));
+            s.setStartTime(new Time(7, 0, 0));
+            s.setEndTime(new Time(19, 0, 0));
             return s;
         } else if ("晚班".equals(values)) {
             Shift s = new Shift();
@@ -69,8 +69,8 @@ public enum ShiftType {
         Shift s = new Shift();
         s.setName(value);
         if ("早班".equals(value())) {
-            s.setStartTime(new Time(0, 0, 0));
-            s.setEndTime(new Time(7, 0, 0));
+            s.setStartTime(new Time(7, 0, 0));
+            s.setEndTime(new Time(19, 0, 0));
         } else if ("晚班".equals(value())) {
             s.setStartTime(new Time(19, 0, 0));
             s.setEndTime(new Time(7, 0, 0));
