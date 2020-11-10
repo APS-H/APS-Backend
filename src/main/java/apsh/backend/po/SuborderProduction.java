@@ -29,7 +29,6 @@ public class SuborderProduction {
     @Column(name = "suborder_id")
     private String suborderId;
 
-    // TODO: 他妈的
     @Column(name = "start_time")
     private Timestamp startTime;
 

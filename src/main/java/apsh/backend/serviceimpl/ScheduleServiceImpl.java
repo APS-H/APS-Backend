@@ -1,7 +1,6 @@
 package apsh.backend.serviceimpl;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -83,7 +82,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                     orderProductionPo.getSuborderProductions().size());
             for (SuborderProduction po : orderProductionPo.getSuborderProductions())
                 suborderProductionDtos.add(new SuborderProductionDto(po.getSuborderId(),
-                        new Date(po.getStartTime().getTime()), new Date(po.getEndTime().getTime()),
+                        po.getStartTime() == null ? null : new Date(po.getStartTime().getTime()),
+                        po.getEndTime() == null ? null : new Date(po.getEndTime().getTime()),
                         new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
             OrderProductionDto dto = new OrderProductionDto(orderProductionPo.getOrderId(), suborderProductionDtos);
             solutionDto.add(dto);
@@ -383,7 +383,6 @@ public class ScheduleServiceImpl implements ScheduleService {
      * 把当前输入和排程结果保存到数据库中
      */
     private void saveInputAndSolution() {
-        // TODO: 保存输入
         List<OrderProduction> orderProductionPos = new ArrayList<>(solutionDto.size());
         for (OrderProductionDto orderProductionDto : solutionDto) {
             Set<SuborderProduction> suborderProductionPos = new HashSet<>(orderProductionDto.getSuborders().size());
@@ -401,7 +400,6 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private void deleteInputAndSolution() {
-        // TODO: 删除输入
         orderProductionRepository.deleteAll();
     }
 }
