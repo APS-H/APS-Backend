@@ -93,6 +93,25 @@ public class Suborder {
         return count * 2;
     }
 
+    // 选择了两个以上的组但是不能同时工作
+    public boolean manpowerCannotWorkTogether() {
+        boolean hasDay = false;
+        boolean hasNight = false;
+        if (manpowerA != null) {
+            hasDay = manpowerA.getWorkSections().size() == 1;
+            hasNight = manpowerA.getWorkSections().size() != 1;
+        }
+        if (manpowerB != null) {
+            hasDay = manpowerB.getWorkSections().size() == 1;
+            hasNight = manpowerB.getWorkSections().size() != 1;
+        }
+        if (manpowerC != null) {
+            hasDay = manpowerC.getWorkSections().size() == 1;
+            hasNight = manpowerC.getWorkSections().size() != 1;
+        }
+        return hasDay && hasNight;
+    }
+
     // 人力资源不能工作的总数
     public int manpowerCannotWorkCount() {
         if (timeGrain == null)
