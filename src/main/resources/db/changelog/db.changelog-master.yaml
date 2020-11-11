@@ -197,7 +197,7 @@ databaseChangeLog:
         - addColumn:
             tableName: suborder_production
             columns:
-              - column:
+              - column:g
                   name: order_production_id
                   type: int
                   constraints:
