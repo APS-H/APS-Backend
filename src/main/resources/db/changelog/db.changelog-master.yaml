@@ -1,4 +1,4 @@
-databaseChangeLog:
+rdatabaseChangeLog:
   - preConditions:
   - runningAs:
     username: root
