@@ -140,7 +140,7 @@ public class Suborder {
             selfManpowers.add(manpowerA);
         if (manpowerB != null)
             selfManpowers.add(manpowerB);
-        if (manpowerA != null)
+        if (manpowerC != null)
             selfManpowers.add(manpowerC);
         int res = 0;
         if (selfManpowers.contains(b.manpowerA))

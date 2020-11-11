@@ -299,7 +299,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         int availableTimeGrainCount = 0;
         for (Order order : orders)
             availableTimeGrainCount += order.getNeedTimeInHour() / maxSuborderNeedTimeInHour + 1;
-        availableTimeGrainCount *= 2;
+        availableTimeGrainCount = availableTimeGrainCount / 3 + 10;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeGrainCount);
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
