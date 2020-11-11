@@ -37,8 +37,4 @@ public class TimeSectionDto {
             this.end = calendar.get(Calendar.HOUR_OF_DAY);
         }
     }
-
-    public static void main(String[] args) {
-        System.out.println(Time.valueOf(LocalTime.MAX).equals(Time.valueOf(LocalTime.MAX)));
-    }
 }
