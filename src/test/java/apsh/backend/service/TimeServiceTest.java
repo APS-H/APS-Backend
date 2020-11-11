@@ -21,11 +21,11 @@ public class TimeServiceTest {
     @Test
     void setTime() throws InterruptedException {
         SystemTime systemTime = new SystemTime(
-                LocalDateTime.of(2017, 6, 10, 7, 0, 0),
+                LocalDateTime.of(2018, 11, 1, 7, 0, 0),
                 2.0,
                 LocalDateTime.now()
         );
-        timeService.setTime(systemTime);
+        timeService.setTime(systemTime, true);
         Thread.sleep(60000);
         List<OrderProductionDto> orderProductionDtos = null;
         int count = 0;

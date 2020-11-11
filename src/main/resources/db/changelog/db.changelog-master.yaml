@@ -180,10 +180,10 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: start_time
-                  type: time
+                  type: datetime
               - column:
                   name: end_time
-                  type: time
+                  type: datetime
               - column:
                   name: manpower_ids
                   type: varchar(50)
@@ -197,7 +197,7 @@ databaseChangeLog:
         - addColumn:
             tableName: suborder_production
             columns:
-              - column:g
+              - column:
                   name: order_production_id
                   type: int
                   constraints:

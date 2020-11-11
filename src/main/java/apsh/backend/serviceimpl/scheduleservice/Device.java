@@ -18,4 +18,9 @@ public class Device {
     public static Device fromDto(DeviceDto dto) {
         return new Device(dto.getId(), dto.getDeviceTypeId());
     }
+
+    @Override
+    public String toString() {
+        return "{ " + id.toString() + ", " + deviceTypeId.toString() + " }";
+    }
 }

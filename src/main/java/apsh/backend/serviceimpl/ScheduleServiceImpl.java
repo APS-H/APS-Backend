@@ -1,6 +1,6 @@
 package apsh.backend.serviceimpl;
 
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -44,7 +44,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     static final Long millisecondCountPerHour = 60L * 60L * 1000L;
 
     // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-    static final int maxSuborderNeedTimeInHour = 6;
+    static final int maxSuborderNeedTimeInHour = 12;
 
     @Autowired
     private OrderProductionRepository orderProductionRepository;
@@ -63,12 +63,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     // 当前的排程任务是否持久化
     private boolean stateSolutionSaved = false;
 
-    private final  LegacySystemService legacySystemService;
+    private final LegacySystemService legacySystemService;
+
     @Autowired
     public ScheduleServiceImpl(LegacySystemServiceImpl legacySystemService) {
         this.legacySystemService = legacySystemService;
     }
-
 
     @PostConstruct
     private void init() {
@@ -81,8 +81,10 @@ public class ScheduleServiceImpl implements ScheduleService {
             List<SuborderProductionDto> suborderProductionDtos = new ArrayList<>(
                     orderProductionPo.getSuborderProductions().size());
             for (SuborderProduction po : orderProductionPo.getSuborderProductions())
-                suborderProductionDtos.add(new SuborderProductionDto(po.getSuborderId(), Date.from(po.getStartTime()),
-                        Date.from(po.getEndTime()), new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
+                suborderProductionDtos.add(new SuborderProductionDto(po.getSuborderId(),
+                        po.getStartTime() == null ? null : new Date(po.getStartTime().getTime()),
+                        po.getEndTime() == null ? null : new Date(po.getEndTime().getTime()),
+                        new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
             OrderProductionDto dto = new OrderProductionDto(orderProductionPo.getOrderId(), suborderProductionDtos);
             solutionDto.add(dto);
         }
@@ -253,17 +255,17 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<SchedulePlanTableOrderVo> getPlanTable() {
-        List<apsh.backend.po.Order> allOrders=legacySystemService.getAllOrders();
-        List<SchedulePlanTableOrderVo> SPOVOList=allOrders.stream().map(apsh.backend.po.Order::getScheduleProductionTableProductionVo).collect(Collectors.toList());
-        for(OrderProduction OP:orderProductionRepository.findAll()){
-           String orderId= OP.getOrderId();
-           for(SchedulePlanTableOrderVo SPOVO:SPOVOList){
-               if(orderId.equals(SPOVO.getOrderNo())){
-                   SPOVO.addSchedule(OP.getScheduleInSchedulePlanTableOrderVo());
-               }
+        List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
+        List<SchedulePlanTableOrderVo> SPOVOList = allOrders.stream()
+                .map(apsh.backend.po.Order::getScheduleProductionTableProductionVo).collect(Collectors.toList());
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            String orderId = OP.getOrderId();
+            for (SchedulePlanTableOrderVo SPOVO : SPOVOList) {
+                if (orderId.equals(SPOVO.getOrderNo())) {
+                    SPOVO.addSchedule(OP.getScheduleInSchedulePlanTableOrderVo());
+                }
 
-           }
-
+            }
 
         }
 
@@ -282,42 +284,62 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleProductionTableProductionVo> getProductionTable() {
-        return null;
+        List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
+
+        List<ScheduleProductionTableProductionVo> SPTPVOList=new ArrayList<>();
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            for(apsh.backend.po.Order order:allOrders){
+                if(Integer.parseInt(OP.getOrderId())==order.getId()){
+                    SPTPVOList.addAll(OP.getScheduleProductionTableProductionVo(order.getProductId()));
+                }
+            }
+
+        }
+        return SPTPVOList;
     }
 
     @Override
     public List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable() {
-        return null;
+        List<ScheduleProductionResourceTableProductionVo> SPRTPVOList=new ArrayList<>();
+
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            SPRTPVOList.addAll(OP.getScheduleProductionResourceTableProductionVoS());
+
+        }
+
+        return SPRTPVOList;
     }
 
     /**
      * 生成所有的时间粒度
      */
     private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime, Date availableStartTime) {
-        int totalNeedHours = 0;
+        int availableTimeGrainCount = 0;
         for (Order order : orders)
-            totalNeedHours += order.getNeedTimeInHour();
-        // 延迟系数
-        float factor = 1f;
-        int availableTimeInHour = (int) (totalNeedHours / maxSuborderNeedTimeInHour * factor) + 5;
-        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeInHour);
+            availableTimeGrainCount += order.getNeedTimeInHour() / maxSuborderNeedTimeInHour + 1;
+        availableTimeGrainCount *= 2;
+        List<TimeGrain> timeGrains = new ArrayList<>(availableTimeGrainCount);
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
         int startHourOfDay = startTimeCalendar.get(Calendar.HOUR_OF_DAY);
         Calendar tempCalendar = Calendar.getInstance();
         int tempDayOfWeek = -1;
-        for (int i = 0; i < availableTimeInHour; i++) {
+        for (int i = 0; i < availableTimeGrainCount; i++) {
             Date date = new Date(startTime.getTime() + i * maxSuborderNeedTimeInHour * millisecondCountPerHour);
             // 周末不上班
             tempCalendar.setTime(date);
             tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
-            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY) {
+                availableTimeGrainCount++;
                 continue;
+            }
             Date endDate = new Date(date.getTime() + maxSuborderNeedTimeInHour * millisecondCountPerHour);
             tempCalendar.setTime(endDate);
             tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
-            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY)
+            if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY) {
+                availableTimeGrainCount++;
                 continue;
+            }
             // 添加时间粒度
             timeGrains.add(new TimeGrain(i, date, startHourOfDay));
             startHourOfDay = (startHourOfDay + maxSuborderNeedTimeInHour) % 24;
@@ -379,14 +401,14 @@ public class ScheduleServiceImpl implements ScheduleService {
      * 把当前输入和排程结果保存到数据库中
      */
     private void saveInputAndSolution() {
-        // TODO: 保存输入
         List<OrderProduction> orderProductionPos = new ArrayList<>(solutionDto.size());
         for (OrderProductionDto orderProductionDto : solutionDto) {
             Set<SuborderProduction> suborderProductionPos = new HashSet<>(orderProductionDto.getSuborders().size());
             for (SuborderProductionDto dto : orderProductionDto.getSuborders()) {
-                Instant startInstant = (dto.getStartTime() == null) ? null : dto.getStartTime().toInstant();
-                Instant endInstant = (dto.getEndTime() == null) ? null : dto.getEndTime().toInstant();
-                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), startInstant, endInstant,
+                Timestamp startTimestamp = (dto.getStartTime() == null) ? null
+                        : new Timestamp(dto.getStartTime().getTime());
+                Timestamp endTimestamp = (dto.getEndTime() == null) ? null : new Timestamp(dto.getEndTime().getTime());
+                suborderProductionPos.add(new SuborderProduction(null, dto.getId(), startTimestamp, endTimestamp,
                         dto.getManpowerIds(), dto.getDeviceId()));
             }
             orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(), suborderProductionPos));
@@ -396,7 +418,6 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private void deleteInputAndSolution() {
-        // TODO: 删除输入
         orderProductionRepository.deleteAll();
     }
 }

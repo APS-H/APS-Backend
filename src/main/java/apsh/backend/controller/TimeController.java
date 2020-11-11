@@ -34,7 +34,8 @@ public class TimeController {
     @PutMapping()
     public void putTime(@RequestBody TimeVo vo) {
         logger.infoControllerRequest("PUT", "/system-time", vo);
-        timeService.setTime(new SystemTime(vo));
+        if (vo.getStartSchedule() == null) vo.setStartSchedule(false);
+        timeService.setTime(new SystemTime(vo), vo.getStartSchedule());
     }
 
     @GetMapping()

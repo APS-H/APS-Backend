@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ScheduleProductionResourceTableProductionVo {
     String productionId;
-    List<ResourceInResourceLoadVo> resources;
+    List<ResourceInScheduleProductionResourceTableProductionVo> resources;
 }
