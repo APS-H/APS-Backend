@@ -8,7 +8,7 @@ public interface TimeService {
 
     void updateTime(SystemTime systemTime);
 
-    void setTime(SystemTime systemTime);
+    void setTime(SystemTime systemTime, Boolean startSchedule);
 
     SystemTime getTime();
 
