@@ -25,7 +25,7 @@ public class TimeServiceTest {
                 2.0,
                 LocalDateTime.now()
         );
-        timeService.setTime(systemTime);
+        timeService.setTime(systemTime, true);
         Thread.sleep(60000);
         List<OrderProductionDto> orderProductionDtos = null;
         int count = 0;
