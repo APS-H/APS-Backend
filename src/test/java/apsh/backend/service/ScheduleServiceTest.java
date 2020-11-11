@@ -86,8 +86,8 @@ public class ScheduleServiceTest {
         deviceDtos.add(new DeviceDto("dev3", "line3"));
         List<OrderDto> orderDtos = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-        Date startTime = dateFormat.parse("2020-10-01 7");
-        orderDtos.add(new OrderDto("order1", false, 24, 7, dateFormat.parse("2020-10-02 09"),
+        Date startTime = dateFormat.parse("2020-10-30 7");
+        orderDtos.add(new OrderDto("order1", false, 24, 7, dateFormat.parse("2020-11-02 09"),
                 Arrays.asList("man1", "man2", "man3", "man4"), Arrays.asList("line3")));
         orderDtos.add(new OrderDto("order2", false, 24, 8, dateFormat.parse("2020-11-02 12"),
                 Arrays.asList("man1", "man2"), Arrays.asList("line1", "line2")));

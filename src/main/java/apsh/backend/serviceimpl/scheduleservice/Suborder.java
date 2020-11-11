@@ -153,7 +153,7 @@ public class Suborder {
     }
 
     public boolean delay() {
-        return timeGrain != null && timeGrain.getIndex() + needTimeInHour > deadlineTimeGrainIndex;
+        return timeGrain != null && timeGrain.getIndex() >= deadlineTimeGrainIndex;
     }
 
     public static Suborder create(Order order, int index, boolean urgent, int needTimeInHour,

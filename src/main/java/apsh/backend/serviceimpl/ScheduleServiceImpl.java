@@ -170,7 +170,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 suborder.setAvailableManpowerIdSet(order.getAvailableManpowerIdSet());
                 suborder.setAvailableDeviceTypeIdSet(order.getAvailableDeviceTypeIdSet());
                 int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
-                        / millisecondCountPerHour);
+                        / millisecondCountPerHour / maxSuborderNeedTimeInHour);
                 suborder.setDeadlineTimeGrainIndex(ddlTimeGrainIndex);
                 if (dto.getStartTime().after(insertTime))
                     // 需要重新排程
@@ -337,7 +337,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (Order order : orders) {
             int suborderIndex = 0;
             int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
-                    / millisecondCountPerHour);
+                    / millisecondCountPerHour / maxSuborderNeedTimeInHour);
             int remainTimeInHour = order.getNeedTimeInHour();
             while (remainTimeInHour > 0) {
                 suborders.add(Suborder.create(order, suborderIndex++, urgent,
