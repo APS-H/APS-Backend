@@ -17,3 +17,8 @@ GET {{hostAndPort}}/schedule/production-resource-table?pageSize=100&pageNum=1
 GET {{hostAndPort}}/resource/use/all?pageSize=1000&pageNum=1&date=2018-11-11 00:00
 
 ###
+
+GET {{hostAndPort}}/order/progress/all?date=2018-01-01 00:00&pageSize=100&pageNum=1
+
+###
+
