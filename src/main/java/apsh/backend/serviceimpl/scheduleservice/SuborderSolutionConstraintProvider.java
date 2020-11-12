@@ -2,6 +2,7 @@ package apsh.backend.serviceimpl.scheduleservice;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
@@ -19,7 +20,8 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
                 manpowerOverlap(constraintFactory), manpowerPeopleNotEnough(constraintFactory),
                 manpowerConflict(constraintFactory), deviceConflict(constraintFactory), softDelay(constraintFactory),
-                softDeviceLoadBalance(constraintFactory), softManpowerLoadBalance(constraintFactory) };
+                softEarlyFinish(constraintFactory), softDeviceLoadBalance(constraintFactory),
+                softManpowerLoadBalance(constraintFactory) };
     }
 
     private Constraint urgentOrderDelay(ConstraintFactory constraintFactory) {
@@ -87,20 +89,33 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 HardSoftScore.ONE_SOFT);
     }
 
-    // 设备负载均衡
-    private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
-        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).penalize(
-                "Soft device load balance", HardSoftScore.ONE_SOFT,
-                DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
+    private Constraint softEarlyFinish(ConstraintFactory constraintFactory) {
+        // 尽早结束
+        return constraintFactory.from(Suborder.class).groupBy(earlyFinish(Suborder::getTimeGrain))
+                .penalize("Soft early finish", HardSoftScore.ONE_SOFT, EarlyFinishData::getLatestDdlTimeGrainIndex);
     }
 
-    // 员工负载均衡
+    private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
+        // 设备负载均衡
+        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).penalize(
+                "Soft device load balance", HardSoftScore.ONE_SOFT, DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
+    }
+
     private Constraint softManpowerLoadBalance(ConstraintFactory constraintFactory) {
+        // 员工负载均衡
         // TODO: 测试
         return constraintFactory.from(Suborder.class)
                 .groupBy(manpowerLoadBalance(Suborder::getManpowerA, Suborder::getManpowerB, Suborder::getManpowerC))
                 .penalize("Soft manpower load balance", HardSoftScore.ONE_SOFT,
                         ManpowerLoadBalanceData::getZeroDeviationSquaredSumRoot);
+    }
+
+    private static DefaultUniConstraintCollector<Suborder, ?, EarlyFinishData> earlyFinish(
+            Function<Suborder, TimeGrain> getTimeGrain) {
+        return new DefaultUniConstraintCollector<>(EarlyFinishData::new, (resultContainer, suborder) -> {
+            TimeGrain timeGrain = getTimeGrain.apply(suborder);
+            return resultContainer.apply(timeGrain);
+        }, resultContainer -> resultContainer);
     }
 
     private static DefaultUniConstraintCollector<Suborder, ?, DeviceLoadBalanceData> deviceLoadBalance(
@@ -122,19 +137,36 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         }, resultContainer -> resultContainer);
     }
 
+    private static final class EarlyFinishData {
+        private final TreeMap<Integer, Integer> ddlCountMap = new TreeMap<>();
+
+        private Runnable apply(TimeGrain timeGrain) {
+            if (timeGrain != null)
+                ddlCountMap.compute(timeGrain.getIndex(), (key, value) -> (value == null) ? 1 : value + 1);
+            return () -> {
+                if (timeGrain != null)
+                    ddlCountMap.compute(timeGrain.getIndex(), (key, value) -> (value == 1) ? null : value - 1);
+            };
+        }
+
+        public int getLatestDdlTimeGrainIndex() {
+            return ddlCountMap.isEmpty() ? 0 : ddlCountMap.lastKey();
+        }
+    }
+
     private static final class DeviceLoadBalanceData {
-        private final Map<String, Long> countMap = new LinkedHashMap<>();
+        private final Map<String, Integer> countMap = new LinkedHashMap<>();
         private long squaredSum = 0L;
 
         private Runnable apply(Device dev) {
             if (dev != null) {
-                long count = countMap.compute(dev.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+                long count = countMap.compute(dev.getId(), (key, value) -> (value == null) ? 1 : value + 1);
                 squaredSum += 2 * count - 1;
             }
             return () -> {
                 if (dev != null) {
-                    Long count = countMap.compute(dev.getId(), (key, value) -> (value == 1L) ? null : value - 1L);
-                    squaredSum -= count == null ? 1 : (2 * count + 1);
+                    Integer count = countMap.compute(dev.getId(), (key, value) -> (value == 1) ? null : value - 1);
+                    squaredSum -= count == null ? 1 : (2L * count + 1L);
                 }
             };
         }
