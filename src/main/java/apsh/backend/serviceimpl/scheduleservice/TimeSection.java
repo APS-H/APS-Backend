@@ -22,4 +22,9 @@ public class TimeSection {
     public static TimeSection fromDto(TimeSectionDto dto) {
         return new TimeSection(dto.getStart(), dto.getEnd());
     }
+
+    @Override
+    public String toString() {
+        return "[" + start.toString() + ", " + end.toString() + "]";
+    }
 }

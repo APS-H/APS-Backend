@@ -1,6 +1,8 @@
 package apsh.backend.po;
 
-import java.time.Instant;
+import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -11,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import apsh.backend.po.converter.StringListConverter;
+import apsh.backend.vo.ResourceInScheduleProductionResourceTableProductionVo;
+import apsh.backend.vo.ScheduleProductionResourceTableProductionVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,10 +33,10 @@ public class SuborderProduction {
     private String suborderId;
 
     @Column(name = "start_time")
-    private Instant startTime;
+    private Timestamp startTime;
 
     @Column(name = "end_time")
-    private Instant endTime;
+    private Timestamp endTime;
 
     @Column(name = "manpower_ids")
     @Convert(converter = StringListConverter.class)
@@ -40,4 +44,22 @@ public class SuborderProduction {
 
     @Column(name = "device_id")
     private String deviceId;
+
+    public long getWorkTime() {
+        return ChronoUnit.MINUTES.between(endTime.toLocalDateTime(), startTime.toLocalDateTime());
+    };
+
+    public ScheduleProductionResourceTableProductionVo getgetScheduleProductionResourceTableProductionVoS(){
+        List<ResourceInScheduleProductionResourceTableProductionVo> resources=new ArrayList<>();
+        for(String manid:manpowerIds){
+            ResourceInScheduleProductionResourceTableProductionVo resource=new ResourceInScheduleProductionResourceTableProductionVo(manid,0,1);
+            resources.add(resource);
+        }
+        ResourceInScheduleProductionResourceTableProductionVo dresource=new ResourceInScheduleProductionResourceTableProductionVo(deviceId,1,1);
+        resources.add(dresource);
+        ScheduleProductionResourceTableProductionVo res=new ScheduleProductionResourceTableProductionVo(suborderId,resources);
+        return res;
+
+    }
+
 }

@@ -180,24 +180,16 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: start_time
-                  type: time
-                  constraints:
-                    nullable: false
+                  type: datetime
               - column:
                   name: end_time
-                  type: time
-                  constraints:
-                    nullable: false
+                  type: datetime
               - column:
                   name: manpower_ids
                   type: varchar(50)
-                  constraints:
-                    nullable: false
               - column:
                   name: device_id
                   type: varchar(20)
-                  constraints:
-                    nullable: false
   - changeSet:
       id: 3
       author: bomouhe

@@ -7,12 +7,14 @@ import apsh.backend.dto.OrderDto;
 import apsh.backend.enums.OrderStatus;
 import apsh.backend.po.Craft;
 import apsh.backend.po.Order;
+import apsh.backend.po.OrderProduction;
 import apsh.backend.po.SuborderProduction;
 import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.repository.OrderRepository;
 import apsh.backend.service.*;
 import apsh.backend.util.LogFormatter;
 import apsh.backend.util.LogFormatterImpl;
+import apsh.backend.vo.OrderInOrderProgressVo;
 import apsh.backend.vo.OrderProgressVo;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,15 +40,9 @@ public class OrderServiceImpl implements OrderService, GodService {
     private final LogFormatter logger = new LogFormatterImpl(LoggerFactory.getLogger(OrderServiceImpl.class));
 
     @Autowired
-    public OrderServiceImpl(
-            ScheduleService scheduleService,
-            HumanService humanService,
-            EquipmentService equipmentService,
-            TimeService timeService,
-            LegacySystemService legacySystemService,
-            OrderRepository orderRepository,
-            OrderProductionRepository orderProductionRepository
-    ) {
+    public OrderServiceImpl(ScheduleService scheduleService, HumanService humanService,
+            EquipmentService equipmentService, TimeService timeService, LegacySystemService legacySystemService,
+            OrderRepository orderRepository, OrderProductionRepository orderProductionRepository) {
         this.scheduleService = scheduleService;
         this.humanService = humanService;
         this.equipmentService = equipmentService;
@@ -62,30 +58,29 @@ public class OrderServiceImpl implements OrderService, GodService {
         List<Order> incrementOrders = this.orderRepository.findAll();
         Map<Integer, Instant> orderStatusList = getOrderStatusList();
         Instant now = timeService.now().toInstant(ZoneOffset.UTC);
-        List<CustomerOrderDto> mergedOrders = merge(legacySystemAllOrders, incrementOrders).parallelStream()
-                .map(o -> {
-                    CustomerOrderDto customerOrderDto = new CustomerOrderDto(o);
-                    if (orderStatusList == null || orderStatusList.size() == 0) {
-                        // 排程算法还未开始计算或者尚未计算出结果，此时无法获取订单状态
-                        return customerOrderDto;
-                    }
-                    Instant deliveryDate = new Date(o.getDeliveryDate().getTime()).toInstant();
-                    Instant orderEndTime = orderStatusList.get(o.getId());
-                    if (deliveryDate.isAfter(orderEndTime)) {   // 交付时间 晚于 订单完成时间
-                        if (orderEndTime.isBefore(now)) {   // 订单完成时间 早于 当前时间
-                            customerOrderDto.setState(OrderStatus.DELIVERED_ON_TIME);
-                        } else {
-                            customerOrderDto.setState(OrderStatus.ON_GOING);
-                        }
-                    } else { // 交付时间 早于 订单完成时间
-                        if (orderEndTime.isBefore(now)) {   // 订单完成时间 早于 当前时间
-                            customerOrderDto.setState(OrderStatus.DELAY_PRODUCTION);
-                        } else {
-                            customerOrderDto.setState(OrderStatus.DELIVERED_DELAY);
-                        }
-                    }
-                    return customerOrderDto;
-                }).sorted(((o1, o2) -> o1.getOrderId() < o2.getOrderId() ? 1 : 0)).collect(Collectors.toList());
+        List<CustomerOrderDto> mergedOrders = merge(legacySystemAllOrders, incrementOrders).parallelStream().map(o -> {
+            CustomerOrderDto customerOrderDto = new CustomerOrderDto(o);
+            if (orderStatusList == null || orderStatusList.size() == 0) {
+                // 排程算法还未开始计算或者尚未计算出结果，此时无法获取订单状态
+                return customerOrderDto;
+            }
+            Instant deliveryDate = new Date(o.getDeliveryDate().getTime()).toInstant();
+            Instant orderEndTime = orderStatusList.get(o.getId());
+            if (deliveryDate.isAfter(orderEndTime)) { // 交付时间 晚于 订单完成时间
+                if (orderEndTime.isBefore(now)) { // 订单完成时间 早于 当前时间
+                    customerOrderDto.setState(OrderStatus.DELIVERED_ON_TIME);
+                } else {
+                    customerOrderDto.setState(OrderStatus.ON_GOING);
+                }
+            } else { // 交付时间 早于 订单完成时间
+                if (orderEndTime.isBefore(now)) { // 订单完成时间 早于 当前时间
+                    customerOrderDto.setState(OrderStatus.DELAY_PRODUCTION);
+                } else {
+                    customerOrderDto.setState(OrderStatus.DELIVERED_DELAY);
+                }
+            }
+            return customerOrderDto;
+        }).sorted(((o1, o2) -> o1.getOrderId() < o2.getOrderId() ? 1 : 0)).collect(Collectors.toList());
         int start = Math.max(0, pageSize * (pageNum - 1));
         int end = Math.min(mergedOrders.size(), pageSize * pageNum);
         return mergedOrders.subList(start, end);
@@ -93,26 +88,19 @@ public class OrderServiceImpl implements OrderService, GodService {
 
     private Map<Integer, Instant> getOrderStatusList() {
         return orderProductionRepository.findAll().parallelStream()
-                .collect(Collectors.toMap(
-                        op -> Integer.parseInt(op.getOrderId()),
-                        op -> {
-                            assert op.getSuborderProductions() != null && op.getSuborderProductions().size() != 0;
-                            return op.getSuborderProductions().parallelStream()
-                                    .map(SuborderProduction::getEndTime)
-                                    .min(Comparator.naturalOrder())
-                                    .get();
-                        })
-                );
+                .collect(Collectors.toMap(op -> Integer.parseInt(op.getOrderId()), op -> {
+                    assert op.getSuborderProductions() != null && op.getSuborderProductions().size() != 0;
+                    return op.getSuborderProductions().parallelStream().map(SuborderProduction::getEndTime)
+                            .map(timestamp -> timestamp.toInstant()).min(Comparator.naturalOrder()).get();
+                }));
     }
 
     private List<Order> merge(List<Order> legacySystemAllOrders, List<Order> incrementOrders) {
         Map<Integer, Order> mergedOrders = legacySystemAllOrders.parallelStream()
                 // 解决这傻逼的数据 - 只取第一个：
-                // 764104	3211498	4000	2018/11/19
-                // 764104	3211498	1900	2018/11/20
-                .collect(Collectors.groupingBy(Order::getId))
-                .entrySet().parallelStream()
-                .map(e -> e.getValue().get(0))
+                // 764104 3211498 4000 2018/11/19
+                // 764104 3211498 1900 2018/11/20
+                .collect(Collectors.groupingBy(Order::getId)).entrySet().parallelStream().map(e -> e.getValue().get(0))
                 .collect(Collectors.toMap(Order::getId, o -> o));
         incrementOrders.forEach(o -> {
             if (o.getIsDeleted() == Order.DELETED) {
@@ -127,9 +115,13 @@ public class OrderServiceImpl implements OrderService, GodService {
     @Override
 
     public OrderProgressVo getOrderProgress(Date date) {
-
-
-        return null;
+        List<OrderProduction> orderProductions = orderProductionRepository.findAll();
+        List<OrderInOrderProgressVo> progress = orderProductions.parallelStream().map(o -> {
+            return o.getOrderInOrderProgress(date);
+        }).collect(Collectors.toList());
+        OptionalDouble totalrate = progress.stream().mapToDouble(o -> o.getAssembleRate()).average();
+        OrderProgressVo OPVO = new OrderProgressVo(totalrate.getAsDouble(), progress);
+        return OPVO;
     }
 
     public void add(CustomerOrderDto order) {
@@ -155,7 +147,8 @@ public class OrderServiceImpl implements OrderService, GodService {
         // 订单编号存在且逻辑删除标志为1，修改失败
         // 否则，更新该条订单记录，删除标志置为0
         if (orderOptional.isPresent() && orderOptional.get().getIsDeleted() == Order.DELETED) {
-            logger.errorService("update", order, "order " + order.getOrderId() + " has already been deleted! update fails");
+            logger.errorService("update", order,
+                    "order " + order.getOrderId() + " has already been deleted! update fails");
         } else {
             Order o = new Order(order);
             o.setIsDeleted(Order.NOT_DELETED);
@@ -182,8 +175,7 @@ public class OrderServiceImpl implements OrderService, GodService {
 
     @Override
     public List<ManpowerDto> prepareManPowers() {
-        return humanService.getAll(Integer.MAX_VALUE, 1).parallelStream()
-                .map(ManpowerDto::new)
+        return humanService.getAll(Integer.MAX_VALUE, 1).parallelStream().map(ManpowerDto::new)
                 .collect(Collectors.toList());
     }
 
@@ -197,17 +189,14 @@ public class OrderServiceImpl implements OrderService, GodService {
     @Override
     public List<OrderDto> prepareOrders() {
         Map<String, Craft> crafts = prepareCrafts();
-        return getAll(Integer.MAX_VALUE, 1).parallelStream()
-                .map(o -> {
-                    Craft craft = crafts.get(String.valueOf(o.getProductId()));
-                    if (craft == null) {
-                        // 说明该订单生产的物料没有对应的工艺，直接去掉该订单
-                        return null;
-                    }
-                    return new OrderDto(o, craft);
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return getAll(Integer.MAX_VALUE, 1).parallelStream().map(o -> {
+            Craft craft = crafts.get(String.valueOf(o.getProductId()));
+            if (craft == null) {
+                // 说明该订单生产的物料没有对应的工艺，直接去掉该订单
+                return null;
+            }
+            return new OrderDto(o, craft);
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @Override

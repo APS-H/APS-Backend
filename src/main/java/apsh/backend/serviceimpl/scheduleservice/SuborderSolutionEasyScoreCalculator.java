@@ -6,65 +6,62 @@ import java.util.List;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.score.director.easy.EasyScoreCalculator;
 
-public class SuborderSolutionEasyScoreCalculator implements EasyScoreCalculator<SuborderSolution> {
-    @Override
-    public HardSoftScore calculateScore(SuborderSolution schedule) {
-        int hardScore = 0;
-        int softScore = 0;
-        for (int i = 0; i < schedule.getSuborders().size(); i++) {
-            Suborder a = schedule.getSuborders().get(i);
-            // 插单不能延期
-            if (a.getUrgent() && a.getTimeGrain() != null
-                    && a.getTimeGrain().getIndex() + a.getNeedTimeInHour() > a.getDeadlineTimeGrainIndex())
-                hardScore--;
+public class SuborderSolutionEasyScoreCalculator {//implements EasyScoreCalculator<SuborderSolution> {
+    // @Override
+    // public HardSoftScore calculateScore(SuborderSolution schedule) {
+    //     int hardScore = 0;
+    //     int softScore = 0;
+    //     for (int i = 0; i < schedule.getSuborders().size(); i++) {
+    //         Suborder a = schedule.getSuborders().get(i);
+    //         // 插单不能延期
+    //         if (a.getUrgent() && a.delay())
+    //             hardScore--;
 
-            // 人力资源不可用
-            if (!manpowerAvailable(a.getManpowerA(), a.getAvailableManpowerIdList()))
-                hardScore--;
-            if (!manpowerAvailable(a.getManpowerB(), a.getAvailableManpowerIdList()))
-                hardScore--;
-            if (!manpowerAvailable(a.getManpowerC(), a.getAvailableManpowerIdList()))
-                hardScore--;
-            // 设备资源不可用
-            if (a.getDevice() != null && !a.getAvailableDeviceTypeIdList().contains(a.getDevice().getDeviceTypeId()))
-                hardScore--;
+    //         // 人力资源不可用
+    //         if (a.manpowerNotAvailable(a.getManpowerA()))
+    //             hardScore--;
+    //         if (a.manpowerNotAvailable(a.getManpowerB()))
+    //             hardScore--;
+    //         if (a.manpowerNotAvailable(a.getManpowerC()))
+    //             hardScore--;
+    //         // 设备资源不可用
+    //         if (a.deviceNotAvailable())
+    //             hardScore--;
 
-            // 人力资源重复
-            hardScore -= manpowerOverlapCount(a);
-            // 人力资源工作时间不可用
-            if (a.getTimeGrain() != null) {
-                int startHourOfDay = (schedule.getStartHourOfDay() + a.getTimeGrain().getIndex()) % 24;
-                if (a.getManpowerA() != null && !a.getManpowerA().canWork(startHourOfDay, a.getNeedTimeInHour()))
-                    hardScore--;
-                if (a.getManpowerB() != null && !a.getManpowerB().canWork(startHourOfDay, a.getNeedTimeInHour()))
-                    hardScore--;
-                if (a.getManpowerB() != null && !a.getManpowerB().canWork(startHourOfDay, a.getNeedTimeInHour()))
-                    hardScore--;
-            }
-            // 人力资源人员数量不够
-            if (manpowerPeopleCount(a) < a.getNeedPeopleCount())
-                hardScore--;
+    //         // 人力资源重复
+    //         hardScore -= a.manpowerOverlapCount();
+    //         // 人力资源工作时间不可用
+    //         if (a.getTimeGrain() != null) {
+    //             // int startHourOfDay = (schedule.getStartHourOfDay() + a.getTimeGrain().getIndex()) % 24;
+    //             // if (a.getManpowerA() != null && !a.getManpowerA().canWork(startHourOfDay, a.getNeedTimeInHour()))
+    //             //     hardScore--;
+    //             // if (a.getManpowerB() != null && !a.getManpowerB().canWork(startHourOfDay, a.getNeedTimeInHour()))
+    //             //     hardScore--;
+    //             // if (a.getManpowerB() != null && !a.getManpowerB().canWork(startHourOfDay, a.getNeedTimeInHour()))
+    //             //     hardScore--;
+    //         }
+    //         // 人力资源人员数量不够
+    //         if (a.manpowerPeopleCount() < a.getNeedPeopleCount())
+    //             hardScore--;
 
-            // 检查子订单之间冲突
-            for (int j = i + 1; j < schedule.getSuborders().size(); j++) {
-                Suborder b = schedule.getSuborders().get(j);
-                // 时间交叉
-                if (suborderCross(a, b)) {
-                    // 使用了同种人力资源的数量
-                    hardScore -= manpowerCrossCount(a, b);
-                    // 使用了同一个设备
-                    if (a.getDevice() == b.getDevice())
-                        hardScore--;
-                }
-            }
+    //         // 检查子订单之间冲突
+    //         for (int j = i + 1; j < schedule.getSuborders().size(); j++) {
+    //             Suborder b = schedule.getSuborders().get(j);
+    //             // 时间交叉
+    //             if (a.suborderCross(b)) {
+    //                 // 使用了同种人力资源的数量
+    //                 hardScore -= a.manpowerCrossCount(b);
+    //                 // 使用了同一个设备
+    //                 // if (a.getDevice() == b.getDevice())
+    //                 //     hardScore--;
+    //             }
+    //         }
 
-            // 延期
-            if (a.getTimeGrain() != null
-                    && a.getTimeGrain().getIndex() + a.getNeedTimeInHour() > a.getDeadlineTimeGrainIndex())
-                softScore--;
-        }
-        return HardSoftScore.of(hardScore, softScore);
-    }
+    //         // 延期
+    //         if (a.delay()) softScore--;
+    //     }
+    //     return HardSoftScore.of(hardScore, softScore);
+    // }
 
     // 人力资源可用
     private boolean manpowerAvailable(Manpower manpower, List<String> availableManpowerIds) {

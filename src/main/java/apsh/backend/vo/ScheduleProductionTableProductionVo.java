@@ -1,5 +1,6 @@
 package apsh.backend.vo;
 
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -10,6 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleProductionTableProductionVo {
-    String productionId;
+    String productionNo;
+    Integer id;
     List<TaskInScheduleProductionTableProductionVo> tasks;
+
+
 }

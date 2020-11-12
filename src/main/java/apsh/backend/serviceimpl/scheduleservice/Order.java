@@ -1,7 +1,7 @@
 package apsh.backend.serviceimpl.scheduleservice;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
 
 import apsh.backend.dto.OrderDto;
 import lombok.AllArgsConstructor;
@@ -24,12 +24,13 @@ public class Order {
     @NonNull
     private Date deadline;
     @NonNull
-    private List<String> availableManpowerIdList;
+    private HashSet<String> availableManpowerIdSet;
     @NonNull
-    private List<String> availableDeviceTypeIdList;
+    private HashSet<String> availableDeviceTypeIdSet;
 
     public static Order fromDto(OrderDto dto) {
         return new Order(dto.getId(), dto.getUrgent(), dto.getNeedTimeInHour(), dto.getNeedPeopleCount(),
-                dto.getDeadline(), dto.getAvailableManpowerIdList(), dto.getAvailableDeviceTypeIdList());
+                dto.getDeadline(), new HashSet<>(dto.getAvailableManpowerIdList()),
+                new HashSet<>(dto.getAvailableDeviceTypeIdList()));
     }
 }
