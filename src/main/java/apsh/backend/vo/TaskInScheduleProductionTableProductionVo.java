@@ -10,8 +10,8 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskInScheduleProductionTableProductionVo {
-    Integer id;
-    Integer productNum;          // 该子订单下产品数
+    String id;
+    Integer task;
     Date startTime;  // 该子订单开始时间
     Date endTime;
 }

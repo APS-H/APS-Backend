@@ -12,11 +12,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.criteria.CriteriaBuilder;
 
-import apsh.backend.vo.OrderInOrderProgressVo;
-import apsh.backend.vo.ScheduleInSchedulePlanTableOrderVo;
-import apsh.backend.vo.ScheduleOrderProductionTableRelationVo;
-import apsh.backend.vo.ScheduleProductionTableProductionVo;
+import apsh.backend.serviceimpl.scheduleservice.Suborder;
+import apsh.backend.vo.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -117,4 +116,29 @@ public class OrderProduction {
 
         return SOPTRVOS;
     }
+
+
+    public List<ScheduleProductionTableProductionVo> getScheduleProductionTableProductionVo(Integer stock_id) {
+        List<ScheduleProductionTableProductionVo> s = new ArrayList<ScheduleProductionTableProductionVo>();
+        for (SuborderProduction i : suborderProductions) {
+            Date date1 = new Date(i.getStartTime().getTime());
+            Date date2 = new Date(i.getEndTime().getTime());
+            TaskInScheduleProductionTableProductionVo task = new TaskInScheduleProductionTableProductionVo(i.getSuborderId(), stock_id, date1, date2);
+            List<TaskInScheduleProductionTableProductionVo> tasks = new ArrayList<>();
+            tasks.add(task);
+            ScheduleProductionTableProductionVo m = new ScheduleProductionTableProductionVo(i.getSuborderId(), i.getId(), tasks);
+            s.add(m);
+        }
+        return s;
+    }
+
+
+    public List<ScheduleProductionResourceTableProductionVo> getScheduleProductionResourceTableProductionVoS(){
+        List<ScheduleProductionResourceTableProductionVo> res=new ArrayList<>();
+        for(SuborderProduction i:suborderProductions){
+            res.add(i.getgetScheduleProductionResourceTableProductionVoS());
+        }
+        return  res;
+    }
+
 }
