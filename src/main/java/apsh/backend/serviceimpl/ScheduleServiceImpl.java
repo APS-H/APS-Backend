@@ -270,7 +270,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
 
         }
-
+    for(SchedulePlanTableOrderVo i:SPOVOList){
+        i.Caculate();
+    }
         return SPOVOList;
     }
 
@@ -286,12 +288,30 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleProductionTableProductionVo> getProductionTable() {
-        return null;
+        List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
+
+        List<ScheduleProductionTableProductionVo> SPTPVOList=new ArrayList<>();
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            for(apsh.backend.po.Order order:allOrders){
+                if(Integer.parseInt(OP.getOrderId())==order.getId()){
+                    SPTPVOList.addAll(OP.getScheduleProductionTableProductionVo(order.getProductId()));
+                }
+            }
+
+        }
+        return SPTPVOList;
     }
 
     @Override
     public List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable() {
-        return null;
+        List<ScheduleProductionResourceTableProductionVo> SPRTPVOList=new ArrayList<>();
+
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            SPRTPVOList.addAll(OP.getScheduleProductionResourceTableProductionVoS());
+
+        }
+
+        return SPRTPVOList;
     }
 
     /**
