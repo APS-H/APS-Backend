@@ -14,6 +14,7 @@ import apsh.backend.service.ResourceService;
 import apsh.backend.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,7 @@ public class ResourceServiceImpl implements ResourceService {
     private final HumanRepository humanRepository;
     private final OrderRepository orderRepository;
     private final LegacySystemService legacySystemService;
+
     @Autowired
     public ResourceServiceImpl(OrderProductionRepository orderProductionRepository, EquipmentRepository equipmentRepository, HumanRepository humanRepository, OrderRepository orderRepository, LegacySystemService legacySystemService) {
         this.equipmentRepository = equipmentRepository;
@@ -53,15 +55,17 @@ public class ResourceServiceImpl implements ResourceService {
         int start = pageSize * (pageNum - 1);
         int end = pageSize * pageNum;
 
-        ResourceLoadVo result = new ResourceLoadVo(deviceLoad, manpowerLoad, resourceLoadlist.subList(0,EquipmentAmount),resourceLoadlist.subList(EquipmentAmount+1,RUList.size()));
+        ResourceLoadVo result = new ResourceLoadVo(deviceLoad, manpowerLoad, resourceLoadlist.subList(0, EquipmentAmount), resourceLoadlist.subList(EquipmentAmount + 1, RUList.size()));
         return result;
     }
 
     @Override
     public List<ResourceDto> getResourceUse(Date date, Integer pageSize, Integer pageNum) {
-        List<ResourceDto> RUList=getAllResourceUse(date);
+        List<ResourceDto> RUList = getAllResourceUse(date);
         int start = pageSize * (pageNum - 1);
         int end = pageSize * pageNum;
+        start = Math.max(start, 0);
+        end = Math.min(end, RUList.size());
         return RUList.subList(start, end);
     }
 
@@ -70,51 +74,38 @@ public class ResourceServiceImpl implements ResourceService {
         List<Equipment> EList = legacySystemService.getAllEquipments();
         List<Human> HList = legacySystemService.getAllHumans();
 
-
         //转换为resource类型
-        List<ResourceDto> RUList0 = EList.stream().map(o -> {
-            ResourceDto resourceUseDto = new ResourceDto(o);
-            return resourceUseDto;
-        }).collect(Collectors.toList());
-        List<ResourceDto> RUList1 = HList.stream().map(o -> {
-            ResourceDto resourceUseDto = new ResourceDto(o);
-            return resourceUseDto;
-        }).collect(Collectors.toList());
+        List<ResourceDto> RUList0 = EList.stream().map(ResourceDto::new).collect(Collectors.toList());
+        List<ResourceDto> RUList1 = HList.stream().map(ResourceDto::new).collect(Collectors.toList());
 
-
-
-
-
-
-        List<OrderProduction> orderProductions=orderProductionRepository.findAll();
+        List<OrderProduction> orderProductions = orderProductionRepository.findAll();
 
         //假定接口，根据生产单id查询资源关系，接口调用方法为scheduleRepository.getRelateResource(id);
         for (OrderProduction OP : orderProductions) {
-            List<SuborderProduction> SOPs=OP.getSuborderProductionsByDate(date);
-            int stock_id=0;
+            List<SuborderProduction> SOPs = OP.getSuborderProductionsByDate(date);
+            int stock_id = 0;
             //int stock_id=orderRepository.findById(Integer.parseInt(OP.getOrderId())).get().getProductId();
-            if(!SOPs.isEmpty()){
-                for(SuborderProduction SOP:SOPs) {
+            if (!SOPs.isEmpty()) {
+                for (SuborderProduction SOP : SOPs) {
                     for (ResourceDto equipment : RUList0) {
-                        if (equipment.getResourceId().equals( SOP.getDeviceId())){
-                            equipment.addUsedTime(SOP,stock_id);
+                        if (equipment.getResourceId().equals(SOP.getDeviceId())) {
+                            equipment.addUsedTime(SOP, stock_id);
                             break;
                         }
                     }
 
-                    List<String> manPowerIds=new ArrayList<>(SOP.getManpowerIds());
-                    for(String id:manPowerIds){
+                    List<String> manPowerIds = new ArrayList<>(SOP.getManpowerIds());
+                    for (String id : manPowerIds) {
 
                         for (ResourceDto human : RUList1) {
-                            if (human.getResourceId() .equals(id)){
-                                human.addUsedTime(SOP,stock_id);
+                            if (human.getResourceId().equals(id)) {
+                                human.addUsedTime(SOP, stock_id);
                                 break;
                             }
                         }
 
 
                     }
-
 
 
                 }
@@ -128,8 +119,6 @@ public class ResourceServiceImpl implements ResourceService {
         RUList.addAll(RUList1);
         return RUList;
     }
-
-
 
 
 }

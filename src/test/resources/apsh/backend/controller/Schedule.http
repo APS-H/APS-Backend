@@ -1,0 +1,19 @@
+GET {{hostAndPort}}/schedule/plan-table?pageSize=100&pageNum=1
+
+###
+
+GET {{hostAndPort}}/schedule/order-production-table?pageSize=100&pageNum=1
+
+###
+
+GET {{hostAndPort}}/schedule/production-table?pageSize=100&pageNum=1
+
+###
+
+GET {{hostAndPort}}/schedule/production-resource-table?pageSize=100&pageNum=1
+
+###
+
+GET {{hostAndPort}}/resource/use/all?pageSize=1000&pageNum=1&date=2018-11-11 00:00
+
+###
