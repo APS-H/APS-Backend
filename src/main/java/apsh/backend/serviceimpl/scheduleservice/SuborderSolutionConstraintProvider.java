@@ -47,8 +47,8 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
     }
 
     private Constraint manpowerWorkTimeNotAvailable(ConstraintFactory constraintFactory) {
-        // 人力资源A在时间内不可工作
-        return constraintFactory.from(Suborder.class).penalize("Manpower A can not work", HardSoftScore.ONE_HARD,
+        // 人力资源在时间内不可工作
+        return constraintFactory.from(Suborder.class).penalize("Manpower can not work", HardSoftScore.ONE_HARD,
                 Suborder::manpowerCannotWorkCount);
     }
 
