@@ -106,7 +106,7 @@ public class ResourceServiceImpl implements ResourceService {
         //假定接口，根据生产单id查询资源关系，接口调用方法为scheduleRepository.getRelateResource(id);
         for (OrderProduction OP : orderProductions) {
             List<SuborderProduction> SOPs = OP.getSuborderProductionsByDate(date);
-            int stock_id = 0;
+            int stock_id = OP.getOrderId()
             //int stock_id=orderRepository.findById(Integer.parseInt(OP.getOrderId())).get().getProductId();
             if (!SOPs.isEmpty()) {
                 for (SuborderProduction SOP : SOPs) {
