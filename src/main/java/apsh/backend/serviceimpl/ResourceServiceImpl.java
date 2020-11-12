@@ -27,6 +27,8 @@ public class ResourceServiceImpl implements ResourceService {
     private final HumanRepository humanRepository;
     private final OrderRepository orderRepository;
     private final LegacySystemService legacySystemService;
+
+    private int len=0;
     @Autowired
     public ResourceServiceImpl(OrderProductionRepository orderProductionRepository, EquipmentRepository equipmentRepository, HumanRepository humanRepository, OrderRepository orderRepository, LegacySystemService legacySystemService) {
         this.equipmentRepository = equipmentRepository;
@@ -40,7 +42,7 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceLoadVo getResourceLoad(Date date, Integer pageSize, Integer pageNum) {
         List<ResourceDto> RUList = getAllResourceUse(date);
         List<ResourceInResourceLoadVo> resourceLoadlist = RUList.stream().map(ResourceDto::getResourceLoad).collect(Collectors.toList());
-        int EquipmentAmount = equipmentRepository.findAll().size();
+        int EquipmentAmount = len;
         Double deviceLoad = 0.0;
         Double manpowerLoad = 0.0;
         for (int i = 0; i < EquipmentAmount; i++) {
@@ -59,6 +61,7 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public List<ResourceDto> getResourceUse(Date date, Integer pageSize, Integer pageNum) {
+
         List<ResourceDto> RUList=getAllResourceUse(date);
         int start = pageSize * (pageNum - 1);
         int end = pageSize * pageNum;
@@ -67,22 +70,26 @@ public class ResourceServiceImpl implements ResourceService {
 
 
     private List<ResourceDto> getAllResourceUse(Date date) {
+
         List<Equipment> EList = legacySystemService.getAllEquipments();
         List<Human> HList = legacySystemService.getAllHumans();
 
 
         //转换为resource类型
-        List<ResourceDto> RUList0 = EList.stream().map(o -> {
-            ResourceDto resourceUseDto = new ResourceDto(o);
-            return resourceUseDto;
-        }).collect(Collectors.toList());
-        List<ResourceDto> RUList1 = HList.stream().map(o -> {
-            ResourceDto resourceUseDto = new ResourceDto(o);
-            return resourceUseDto;
-        }).collect(Collectors.toList());
-
-
-
+        List<ResourceDto> RUList0 = new ArrayList<>();
+        List<ResourceDto> RUList1 = new ArrayList<>();
+        for (Equipment e:EList){
+            for(int i=0;i<e.getCount();i++){
+                ResourceDto s=new ResourceDto(e);
+                s.setResourceName(s.getResourceName()+String.valueOf(i));
+                RUList0.add(s);
+            }
+        }
+    len=RUList0.size();
+        for (Human h:HList){
+                ResourceDto s=new ResourceDto(h);
+                RUList1.add(s);
+        }
 
 
 
@@ -96,7 +103,7 @@ public class ResourceServiceImpl implements ResourceService {
             if(!SOPs.isEmpty()){
                 for(SuborderProduction SOP:SOPs) {
                     for (ResourceDto equipment : RUList0) {
-                        if (equipment.getResourceId().equals( SOP.getDeviceId())){
+                        if (equipment.getResourceName().equals( SOP.getDeviceId())){
                             equipment.addUsedTime(SOP,stock_id);
                             break;
                         }
