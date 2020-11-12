@@ -19,7 +19,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
                 manpowerOverlap(constraintFactory), manpowerPeopleNotEnough(constraintFactory),
                 manpowerConflict(constraintFactory), deviceConflict(constraintFactory), softDelay(constraintFactory),
-                softDeviceLoadBalance(constraintFactory) };
+                softDeviceLoadBalance(constraintFactory), softManpowerLoadBalance(constraintFactory) };
     }
 
     private Constraint urgentOrderDelay(ConstraintFactory constraintFactory) {
@@ -46,10 +46,12 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 Suborder::manpowerOverlapCount);
     }
 
-    // private Constraint manpowerCannotWorkTogether(ConstraintFactory constraintFactory) {
-    //     // TODO: 同组内的人力资源工作时间不相同 不能同时工作 用于加速搜索
-    //     return constraintFactory.from(Suborder.class).filter(Suborder::manpowerCannotWorkTogether)
-    //             .penalize("Manpower can not work together", HardSoftScore.ONE_HARD);
+    // private Constraint manpowerCannotWorkTogether(ConstraintFactory
+    // constraintFactory) {
+    // // TODO: 同组内的人力资源工作时间不相同 不能同时工作 用于加速搜索
+    // return
+    // constraintFactory.from(Suborder.class).filter(Suborder::manpowerCannotWorkTogether)
+    // .penalize("Manpower can not work together", HardSoftScore.ONE_HARD);
     // }
 
     private Constraint manpowerWorkTimeNotAvailable(ConstraintFactory constraintFactory) {
@@ -87,8 +89,9 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
     // 设备负载均衡
     private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
-        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice))
-                .penalize("Soft dense", HardSoftScore.ONE_SOFT, DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
+        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).penalize(
+                "Soft device load balance", HardSoftScore.ONE_SOFT,
+                DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
     }
 
     // 员工负载均衡
