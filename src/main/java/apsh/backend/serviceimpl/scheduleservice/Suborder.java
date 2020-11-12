@@ -4,15 +4,20 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import lombok.*;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
-@Data
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
 @RequiredArgsConstructor
 @NoArgsConstructor
 @PlanningEntity
-@ToString
 public class Suborder {
     @NonNull
     private String id;
@@ -45,6 +50,12 @@ public class Suborder {
 
     @PlanningVariable(valueRangeProviderRefs = "timeGrainRange")
     private TimeGrain timeGrain;
+
+    public int timeGrainDiff(Suborder b) {
+        if (timeGrain == null || b.timeGrain == null)
+            return 0;
+        return Math.abs(timeGrain.getIndex() - b.timeGrain.getIndex());
+    }
 
     public List<String> getManpowerIds() {
         List<String> res = new ArrayList<String>(3);
