@@ -123,7 +123,7 @@ public class ResourceServiceImpl implements ResourceService {
                     for (String id : manPowerIds) {
 
                         for (ResourceDto human : RUList1) {
-                            if (human.getResourceId().equals(id)) {
+                            if (human.getResourceName().equals(id)) {
                                 human.addUsedTime(SOP, stock_id);
                                 break;
                             }
