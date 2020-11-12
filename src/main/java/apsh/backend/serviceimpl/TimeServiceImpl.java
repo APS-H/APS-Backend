@@ -67,17 +67,17 @@ public class TimeServiceImpl implements TimeService, GodService {
             return;
         }
         systemTime.setTimestamp(LocalDateTime.now());
-        saveTime(systemTime);
+        saveTime(systemTime, true);
     }
 
     @Override
-    public void setTime(SystemTime systemTime) {
+    public void setTime(SystemTime systemTime, Boolean startSchedule) {
         if (systemTime.getStartTime() == null || systemTime.getTimeSpeed() == null) {
             logger.errorService("setTime", systemTime, "startTime or timeSpeed cannot be null");
             return;
         }
         systemTime.setTimestamp(LocalDateTime.now());
-        saveTime(systemTime);
+        saveTime(systemTime, startSchedule);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class TimeServiceImpl implements TimeService, GodService {
         return systemTime.getStartTime().plusMinutes((long) (d.toMinutes() * systemTime.getTimeSpeed()));
     }
 
-    private void saveTime(SystemTime systemTime) {
+    private void saveTime(SystemTime systemTime, Boolean startSchedule) {
         Path path = Paths.get(timeServerUrl);
         if (!Files.exists(path)) {
             try {
@@ -124,7 +124,7 @@ public class TimeServiceImpl implements TimeService, GodService {
         }
 
         // 调用排程模块重新计算排程
-        this.godBlessMe(scheduleService);
+        if (startSchedule) this.godBlessMe(scheduleService);
     }
 
     // return null if time recorded illegal

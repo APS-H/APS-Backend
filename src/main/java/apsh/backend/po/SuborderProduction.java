@@ -2,6 +2,7 @@ package apsh.backend.po;
 
 import java.sql.Timestamp;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -12,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import apsh.backend.po.converter.StringListConverter;
+import apsh.backend.vo.ResourceInScheduleProductionResourceTableProductionVo;
+import apsh.backend.vo.ScheduleProductionResourceTableProductionVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,5 +48,18 @@ public class SuborderProduction {
     public long getWorkTime() {
         return ChronoUnit.MINUTES.between(endTime.toLocalDateTime(), startTime.toLocalDateTime());
     };
+
+    public ScheduleProductionResourceTableProductionVo getgetScheduleProductionResourceTableProductionVoS(){
+        List<ResourceInScheduleProductionResourceTableProductionVo> resources=new ArrayList<>();
+        for(String manid:manpowerIds){
+            ResourceInScheduleProductionResourceTableProductionVo resource=new ResourceInScheduleProductionResourceTableProductionVo(manid,0,1);
+            resources.add(resource);
+        }
+        ResourceInScheduleProductionResourceTableProductionVo dresource=new ResourceInScheduleProductionResourceTableProductionVo(deviceId,1,1);
+        resources.add(dresource);
+        ScheduleProductionResourceTableProductionVo res=new ScheduleProductionResourceTableProductionVo(suborderId,resources);
+        return res;
+
+    }
 
 }

@@ -44,7 +44,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     static final Long millisecondCountPerHour = 60L * 60L * 1000L;
 
     // 划分间隔 子订单的最长持续时间 单位为小时 最好是12的因数
-    static final int maxSuborderNeedTimeInHour = 12;
+    static final int maxSuborderNeedTimeInHour = 6;
 
     @Autowired
     private OrderProductionRepository orderProductionRepository;
@@ -170,7 +170,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 suborder.setAvailableManpowerIdSet(order.getAvailableManpowerIdSet());
                 suborder.setAvailableDeviceTypeIdSet(order.getAvailableDeviceTypeIdSet());
                 int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
-                        / millisecondCountPerHour);
+                        / millisecondCountPerHour / maxSuborderNeedTimeInHour);
                 suborder.setDeadlineTimeGrainIndex(ddlTimeGrainIndex);
                 if (dto.getStartTime().after(insertTime))
                     // 需要重新排程
@@ -268,7 +268,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
 
         }
-
+    for(SchedulePlanTableOrderVo i:SPOVOList){
+        i.Caculate();
+    }
         return SPOVOList;
     }
 
@@ -284,12 +286,30 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleProductionTableProductionVo> getProductionTable() {
-        return null;
+        List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
+
+        List<ScheduleProductionTableProductionVo> SPTPVOList=new ArrayList<>();
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            for(apsh.backend.po.Order order:allOrders){
+                if(Integer.parseInt(OP.getOrderId())==order.getId()){
+                    SPTPVOList.addAll(OP.getScheduleProductionTableProductionVo(order.getProductId()));
+                }
+            }
+
+        }
+        return SPTPVOList;
     }
 
     @Override
     public List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable() {
-        return null;
+        List<ScheduleProductionResourceTableProductionVo> SPRTPVOList=new ArrayList<>();
+
+        for (OrderProduction OP : orderProductionRepository.findAll()) {
+            SPRTPVOList.addAll(OP.getScheduleProductionResourceTableProductionVoS());
+
+        }
+
+        return SPRTPVOList;
     }
 
     /**
@@ -299,7 +319,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         int availableTimeGrainCount = 0;
         for (Order order : orders)
             availableTimeGrainCount += order.getNeedTimeInHour() / maxSuborderNeedTimeInHour + 1;
-        availableTimeGrainCount *= 2;
+        availableTimeGrainCount = availableTimeGrainCount / 3 + 10;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeGrainCount);
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
@@ -313,6 +333,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
             if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY) {
                 availableTimeGrainCount++;
+                startHourOfDay = (startHourOfDay + maxSuborderNeedTimeInHour) % 24;
                 continue;
             }
             Date endDate = new Date(date.getTime() + maxSuborderNeedTimeInHour * millisecondCountPerHour);
@@ -320,6 +341,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             tempDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK);
             if (tempDayOfWeek == Calendar.SUNDAY || tempDayOfWeek == Calendar.SATURDAY) {
                 availableTimeGrainCount++;
+                startHourOfDay = (startHourOfDay + maxSuborderNeedTimeInHour) % 24;
                 continue;
             }
             // 添加时间粒度
@@ -335,7 +357,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (Order order : orders) {
             int suborderIndex = 0;
             int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
-                    / millisecondCountPerHour);
+                    / millisecondCountPerHour / maxSuborderNeedTimeInHour);
             int remainTimeInHour = order.getNeedTimeInHour();
             while (remainTimeInHour > 0) {
                 suborders.add(Suborder.create(order, suborderIndex++, urgent,
