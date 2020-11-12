@@ -268,7 +268,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
 
         }
-
+    for(SchedulePlanTableOrderVo i:SPOVOList){
+        i.Caculate();
+    }
         return SPOVOList;
     }
 
