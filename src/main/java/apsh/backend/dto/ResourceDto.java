@@ -72,7 +72,9 @@ public class ResourceDto {
             System.out.println(i.getEndTime().getTime() - i.getStartTime().getTime());
             usedTime = (usedTime + i.getEndTime().getTime() - i.getStartTime().getTime());
         }
-        long workTime =  (shift.getEndTime().getTime() - shift.getStartTime().getTime());
+
+        long workTime = (long)Math.abs (shift.getEndTime().getTime() - shift.getStartTime().getTime());
+
         double load = ((double)usedTime) / workTime;
         return load;
     }
