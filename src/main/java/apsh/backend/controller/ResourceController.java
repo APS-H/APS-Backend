@@ -33,7 +33,7 @@ public class ResourceController {
     }
 
     @GetMapping(value = "/load/all")
-    public ResourceLoadVo getResourceLoad(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
+    public ResourceLoadVo getResourceLoad(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
             @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
         logger.infoControllerRequest("GET", "/load/all", "pageSize=" + pageSize + ", pageNum=" + pageNum);
         ResourceLoadVo resourceLoadVo=resourceService.getResourceLoad(date,pageSize,pageNum);
@@ -42,7 +42,7 @@ public class ResourceController {
     }
 
     @GetMapping(value = "/use/all")
-    public List<ResourceUseVo> getResourceUse(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date date,
+    public List<ResourceUseVo> getResourceUse(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
             @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
         logger.infoControllerRequest("GET", "/use/all", "pageSize=" + pageSize + ", pageNum=" + pageNum);
         List<ResourceUseVo> resourceUseVos = resourceService.getResourceUse(date,pageSize,pageNum).stream()

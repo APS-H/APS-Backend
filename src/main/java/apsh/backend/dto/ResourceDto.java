@@ -67,12 +67,13 @@ public class ResourceDto {
     }
 
     public double getLoad() {
-        int usedTime = 0;
+        long usedTime = 0;
         for (ProductInResourceUseVo i : usedTimeList) {
-            usedTime = (int) (usedTime + i.getEndTime().getTime() - i.getStartTime().getTime());
+            System.out.println(i.getEndTime().getTime() - i.getStartTime().getTime());
+            usedTime = (usedTime + i.getEndTime().getTime() - i.getStartTime().getTime());
         }
-        int workTime = (int) (shift.getEndTime().getTime() - shift.getStartTime().getTime());
-        double load = usedTime / workTime;
+        long workTime = (long)Math.abs (shift.getEndTime().getTime() - shift.getStartTime().getTime());
+        double load = ((double)usedTime) / workTime;
         return load;
     }
 
