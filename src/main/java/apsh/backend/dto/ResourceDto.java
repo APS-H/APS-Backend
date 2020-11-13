@@ -73,10 +73,6 @@ public class ResourceDto {
             usedTime = (usedTime + i.getEndTime().getTime() - i.getStartTime().getTime());
         }
         long workTime =  (shift.getEndTime().getTime() - shift.getStartTime().getTime());
-        System.out.println("===============");
-        System.out.println(workTime);
-        System.out.println(usedTime / workTime);
-        System.out.println("-------------------");
         double load = ((double)usedTime) / workTime;
         return load;
     }
