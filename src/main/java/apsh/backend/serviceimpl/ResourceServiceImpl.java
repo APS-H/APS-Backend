@@ -30,7 +30,7 @@ public class ResourceServiceImpl implements ResourceService {
     private final LegacySystemService legacySystemService;
 
 
-    private int len=0;
+    private int len = 0;
 
     @Autowired
     public ResourceServiceImpl(OrderProductionRepository orderProductionRepository, EquipmentRepository equipmentRepository, HumanRepository humanRepository, OrderRepository orderRepository, LegacySystemService legacySystemService) {
@@ -66,7 +66,7 @@ public class ResourceServiceImpl implements ResourceService {
     public List<ResourceDto> getResourceUse(Date date, Integer pageSize, Integer pageNum) {
 
 
-        List<ResourceDto> RUList=getAllResourceUse(date);
+        List<ResourceDto> RUList = getAllResourceUse(date);
 
         int start = pageSize * (pageNum - 1);
         int end = pageSize * pageNum;
@@ -85,35 +85,34 @@ public class ResourceServiceImpl implements ResourceService {
 
         List<ResourceDto> RUList0 = new ArrayList<>();
         List<ResourceDto> RUList1 = new ArrayList<>();
-        for (Equipment e:EList){
-            for(int i=0;i<e.getCount();i++){
-                ResourceDto s=new ResourceDto(e);
-                s.setResourceName(s.getResourceName()+String.valueOf(i));
+        for (Equipment e : EList) {
+            for (int i = 0; i < e.getCount(); i++) {
+                ResourceDto s = new ResourceDto(e);
+                s.setResourceName(s.getResourceName() + String.valueOf(i));
                 RUList0.add(s);
             }
         }
-    len=RUList0.size();
-        for (Human h:HList){
-                ResourceDto s=new ResourceDto(h);
-                RUList1.add(s);
+        len = RUList0.size();
+        for (Human h : HList) {
+            ResourceDto s = new ResourceDto(h);
+            RUList1.add(s);
         }
 
 
-
-        List<OrderProduction> orderProductions=orderProductionRepository.findAll();
+        List<OrderProduction> orderProductions = orderProductionRepository.findAll();
 
 
         //假定接口，根据生产单id查询资源关系，接口调用方法为scheduleRepository.getRelateResource(id);
         for (OrderProduction OP : orderProductions) {
             List<SuborderProduction> SOPs = OP.getSuborderProductionsByDate(date);
-            int stock_id = OP.getOrderId()
+            int stock_id = Integer.parseInt(OP.getOrderId());
             //int stock_id=orderRepository.findById(Integer.parseInt(OP.getOrderId())).get().getProductId();
             if (!SOPs.isEmpty()) {
                 for (SuborderProduction SOP : SOPs) {
                     for (ResourceDto equipment : RUList0) {
 
-                        if (equipment.getResourceName().equals( SOP.getDeviceId())){
-                            equipment.addUsedTime(SOP,stock_id);
+                        if (equipment.getResourceName().equals(SOP.getDeviceId())) {
+                            equipment.addUsedTime(SOP, stock_id);
 
                             break;
                         }
