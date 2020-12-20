@@ -12,14 +12,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-import javax.persistence.criteria.CriteriaBuilder;
 
-import apsh.backend.serviceimpl.scheduleservice.Suborder;
 import apsh.backend.vo.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.time.DateUtils;
 
 @Data
 @AllArgsConstructor
@@ -60,14 +57,14 @@ public class OrderProduction {
             }
         }).collect(Collectors.toList());
 
-        long total = origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream()
+        long total = origin.stream().map(SuborderProduction::getWorkMinutes).collect(Collectors.toList()).stream()
                 .mapToLong(o -> o).sum();
 
         long work = origin.stream().filter(s -> {
             // Date date1 = new Date(s.getStartTime().getTime());
             Date date2 = new Date(s.getEndTime().getTime());
             return date.compareTo(date2) >= 0;
-        }).collect(Collectors.toList()).stream().mapToLong(o -> o.getWorkTime()).sum();
+        }).collect(Collectors.toList()).stream().mapToLong(o -> o.getWorkMinutes()).sum();
 
         Double rate = ((double) work) / total;
         OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, 1.0, false);

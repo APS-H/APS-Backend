@@ -15,7 +15,7 @@ public class SchedulePlanTableOrderVo {
     Integer id;
     String orderNo;
     Boolean isSplit;              // 原则上，schedules长度为1 等价于 isSplit为true
-    Integer productNum=0;              // 该订单产品总数
+    Integer productNum = 0;              // 该订单产品总数
     Date startTime;      // 该订单开始时间
     Date endTime;
     List<ScheduleInSchedulePlanTableOrderVo> schedules;
@@ -24,21 +24,21 @@ public class SchedulePlanTableOrderVo {
         this.id = id;
         this.orderNo = orderNo;
         this.productNum = productNum;
-        this.schedules=new ArrayList<ScheduleInSchedulePlanTableOrderVo>();
+        this.schedules = new ArrayList<>();
     }
 
-    public void addSchedule(ScheduleInSchedulePlanTableOrderVo newSchedule){
+    public void addSchedule(ScheduleInSchedulePlanTableOrderVo newSchedule) {
         schedules.add(newSchedule);
     }
 
-    public void Caculate(){
-        long total=0;
-        for(ScheduleInSchedulePlanTableOrderVo i :schedules){
-            total=total+i.getEndTime().getTime()-i.getStartTime().getTime();
+    public void calculate() {
+        long total = 0;
+        for (ScheduleInSchedulePlanTableOrderVo i : schedules) {
+            total = total + i.getEndTime().getTime() - i.getStartTime().getTime();
         }
-        for(ScheduleInSchedulePlanTableOrderVo i :schedules){
-            double rate=((double)(i.getEndTime().getTime()-i.getStartTime().getTime()))/total;
-            int num=(int)(productNum*rate);
+        for (ScheduleInSchedulePlanTableOrderVo i : schedules) {
+            double rate = ((double) (i.getEndTime().getTime() - i.getStartTime().getTime())) / total;
+            int num = (int) (productNum * rate);
             i.setProductNum(num);
         }
     }

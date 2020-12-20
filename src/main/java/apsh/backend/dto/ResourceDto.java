@@ -1,20 +1,15 @@
 package apsh.backend.dto;
 
-import apsh.backend.po.Equipment;
-import apsh.backend.po.Human;
 import apsh.backend.po.Shift;
 import apsh.backend.po.SuborderProduction;
 import apsh.backend.vo.ProductInResourceUseVo;
 import apsh.backend.vo.ResourceInResourceLoadVo;
-import apsh.backend.vo.ResourceLoadVo;
 import apsh.backend.vo.ResourceUseVo;
-import liquibase.pro.packaged.D;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,21 +25,21 @@ public class ResourceDto {
     private Shift shift;
     private List<ProductInResourceUseVo> usedTimeList;
 
-    public ResourceDto(Human po) {
-        this.resourceId = String.valueOf(po.getId());
-        this.resourceName = po.getGroupName();
+    public ResourceDto(HumanDto po) {
+        this.resourceId = String.valueOf(po.getHumanId());
+        this.resourceName = po.getTeamName();
         this.resourceType = 0;
-        this.shift = po.getDailySchedule();
-        this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
+        this.shift = po.getShift().getShift();
+        this.usedTimeList = new ArrayList<>();
 
     }
 
-    public ResourceDto(Equipment po) {
-        this.resourceId = String.valueOf(po.getId());
+    public ResourceDto(EquipmentDto po) {
+        this.resourceId = String.valueOf(po.getDeviceId());
         this.resourceName = po.getName();
         this.resourceType = 1;
-        this.shift = po.getDailySchedule();
-        this.usedTimeList = new ArrayList<ProductInResourceUseVo>();
+        this.shift = po.getShift().getShift();
+        this.usedTimeList = new ArrayList<>();
 
     }
 

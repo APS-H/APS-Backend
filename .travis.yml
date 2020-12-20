@@ -1,82 +1,82 @@
-language: java
-
-jdk:
-  - openjdk8
-
-services:
-  - docker
-
-addons:
-  ssh_known_hosts: 123.57.73.97
-
-cache:
-  directories:
-    - '$HOME/.m2/repository'
-
-# 安装依赖前执行
-before_install:
-
-# 安装依赖
-install:
-
-# 执行构建脚本前执行
-before_script:
-#  - mvn test -P test
-
-# 执行构建脚本
-script:
-  - mvn -B -DskipTests clean install package -P prod
-  #  - docker build -t registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND .
-  #  - echo -n 'YXBzaC1wZWlob25nY2hlbg==' | base64 --decode | docker login --username=876684433@qq.com --password-stdin registry.cn-beijing.aliyuncs.com
-  #  - docker push registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND
-  - docker build -t chph/$APSH_BACKEND .
-  - echo -n 'Q2hwaDExNDk3NTQ4Mjk=' | base64 --decode | docker login --username=chph --password-stdin
-  - docker push chph/$APSH_BACKEND
-
-# 构建脚本执行成功后执行
-after_success:
-
-# 构建脚本执行失败后执行
-after_failure:
-
-# 部署前执行
-before_deploy:
-  - openssl aes-256-cbc -K $encrypted_db2095f63ba3_key -iv $encrypted_db2095f63ba3_iv -in deploy_rsa.enc -out /tmp/deploy_rsa -d
-  - eval "$(ssh-agent -s)"
-  - chmod 600 /tmp/deploy_rsa
-  - ssh-add /tmp/deploy_rsa
-
-# 部署
-deploy:
-  # 后面可以考虑为不同的分支设置不同的部署策略，即使用环境变量的方式动态修改kubernetes/*.yaml中的内容
-  provider: script
-  script: scp ./kubernetes/*.yaml root@123.57.73.97:~/apsh/ && ssh root@123.57.73.97 "kubectl apply -f ~/apsh"
-  on:
-    all_branches: true
-
-# 部署完成后执行
-after_deploy:
-
-# 构建脚本完成后执行
-after_script:
-
-branches:
-  only:
-    - dev
-    - ci
-    - master
-
-notifications:
-  email:
-    recipients:
-      - 876684433@qq.com
-      - chph13420146901@gmail.com
-    on_success: always # default: change
-    on_failure: always # default: always
-
-# 设定环境变量
-env:
-  global:
-    - GH_REF=https://github.com/APS-H/APS-Backend.git
-    # apsh-backend镜像版本
-    - APSH_BACKEND=apsh-backend:v1
+#language: java
+#
+#jdk:
+#  - openjdk8
+#
+#services:
+#  - docker
+#
+#addons:
+#  ssh_known_hosts: 123.57.73.97
+#
+#cache:
+#  directories:
+#    - '$HOME/.m2/repository'
+#
+## 安装依赖前执行
+#before_install:
+#
+## 安装依赖
+#install:
+#
+## 执行构建脚本前执行
+#before_script:
+##  - mvn test -P test
+#
+## 执行构建脚本
+#script:
+#  - mvn -B -DskipTests clean install package -P prod
+#  #  - docker build -t registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND .
+#  #  - echo -n 'YXBzaC1wZWlob25nY2hlbg==' | base64 --decode | docker login --username=876684433@qq.com --password-stdin registry.cn-beijing.aliyuncs.com
+#  #  - docker push registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND
+#  - docker build -t chph/$APSH_BACKEND .
+#  - echo -n 'Q2hwaDExNDk3NTQ4Mjk=' | base64 --decode | docker login --username=chph --password-stdin
+#  - docker push chph/$APSH_BACKEND
+#
+## 构建脚本执行成功后执行
+#after_success:
+#
+## 构建脚本执行失败后执行
+#after_failure:
+#
+## 部署前执行
+#before_deploy:
+#  - openssl aes-256-cbc -K $encrypted_db2095f63ba3_key -iv $encrypted_db2095f63ba3_iv -in deploy_rsa.enc -out /tmp/deploy_rsa -d
+#  - eval "$(ssh-agent -s)"
+#  - chmod 600 /tmp/deploy_rsa
+#  - ssh-add /tmp/deploy_rsa
+#
+## 部署
+#deploy:
+#  # 后面可以考虑为不同的分支设置不同的部署策略，即使用环境变量的方式动态修改kubernetes/*.yaml中的内容
+#  provider: script
+#  script: scp ./kubernetes/*.yaml root@123.57.73.97:~/apsh/ && ssh root@123.57.73.97 "kubectl apply -f ~/apsh"
+#  on:
+#    all_branches: true
+#
+## 部署完成后执行
+#after_deploy:
+#
+## 构建脚本完成后执行
+#after_script:
+#
+#branches:
+#  only:
+#    - dev
+#    - ci
+#    - master
+#
+#notifications:
+#  email:
+#    recipients:
+#      - 876684433@qq.com
+#      - chph13420146901@gmail.com
+#    on_success: always # default: change
+#    on_failure: always # default: always
+#
+## 设定环境变量
+#env:
+#  global:
+#    - GH_REF=https://github.com/APS-H/APS-Backend.git
+#    # apsh-backend镜像版本
+#    - APSH_BACKEND=apsh-backend:v1

@@ -1,19 +1,12 @@
 package apsh.backend.serviceimpl;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import apsh.backend.po.Craft;
 import apsh.backend.service.LegacySystemService;
 import apsh.backend.vo.*;
 import org.optaplanner.core.api.solver.SolverJob;
@@ -94,7 +87,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
-            List<OrderDto> orderDtos, Date startTime) {
+                                     List<OrderDto> orderDtos, Date startTime) {
         // 初始化状态
         List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
@@ -122,7 +115,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+                                   OrderDto urgentOrderDto, Date insertTime, Date startTime) {
         if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
         // 如果结果没有保存说明排程可能正在运行
@@ -257,23 +250,43 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<SchedulePlanTableOrderVo> getPlanTable() {
-        List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
-        List<SchedulePlanTableOrderVo> SPOVOList = allOrders.stream()
-                .map(apsh.backend.po.Order::getScheduleProductionTableProductionVo).collect(Collectors.toList());
-        for (OrderProduction OP : orderProductionRepository.findAll()) {
-            String orderId = OP.getOrderId();
-            for (SchedulePlanTableOrderVo SPOVO : SPOVOList) {
-                if (orderId.equals(SPOVO.getOrderNo())) {
-                    SPOVO.addSchedule(OP.getScheduleInSchedulePlanTableOrderVo());
-                }
-
-            }
-
-        }
-    for(SchedulePlanTableOrderVo i:SPOVOList){
-        i.Caculate();
+        Map<String, Craft> craftMap = legacySystemService.getAllCrafts().parallelStream()
+                .collect(Collectors.toMap(Craft::getProductionId, craft -> craft));
+        Map<Integer, apsh.backend.po.Order> orderMap = legacySystemService.getAllOrders().parallelStream()
+                .collect(Collectors.groupingBy(apsh.backend.po.Order::getId))
+                .entrySet().parallelStream()
+                .map(e -> e.getValue().get(0))
+                .collect(Collectors.toMap(apsh.backend.po.Order::getId, o -> o));
+        return orderProductionRepository.findAll().parallelStream()
+                .map(op -> {
+                    apsh.backend.po.Order order = orderMap.get(Integer.valueOf(op.getOrderId()));
+                    SchedulePlanTableOrderVo vo = new SchedulePlanTableOrderVo();
+                    vo.setId(Integer.valueOf(op.getOrderId()));
+                    vo.setOrderNo(op.getOrderId());
+                    vo.setProductNum(order.getProductCount());
+                    vo.setSchedules(op.getSuborderProductions().parallelStream().map(sp -> {
+                        int productID = order.getProductId();
+                        int sc = craftMap.get(String.valueOf(productID)).getStandardCapability();
+                        ScheduleInSchedulePlanTableOrderVo v = new ScheduleInSchedulePlanTableOrderVo();
+                        v.setId(getNumber(sp.getSuborderId()));
+                        v.setStartTime(sp.getStartTime());
+                        v.setEndTime(sp.getEndTime());
+                        v.setProductNum(Math.toIntExact(sc * sp.getWorkHours()));
+                        return v;
+                    }).collect(Collectors.toList()));
+                    return vo;
+                })
+                .collect(Collectors.toList());
     }
-        return SPOVOList;
+
+    private Integer getNumber(String suborderId) {
+        StringBuilder sb = new StringBuilder();
+        for (char ch : suborderId.toCharArray()) {
+            if (Character.isDigit(ch)) {
+                sb.append(ch);
+            }
+        }
+        return Integer.valueOf(sb.toString());
     }
 
     @Override
@@ -290,10 +303,10 @@ public class ScheduleServiceImpl implements ScheduleService {
     public List<ScheduleProductionTableProductionVo> getProductionTable() {
         List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
 
-        List<ScheduleProductionTableProductionVo> SPTPVOList=new ArrayList<>();
+        List<ScheduleProductionTableProductionVo> SPTPVOList = new ArrayList<>();
         for (OrderProduction OP : orderProductionRepository.findAll()) {
-            for(apsh.backend.po.Order order:allOrders){
-                if(Integer.parseInt(OP.getOrderId())==order.getId()){
+            for (apsh.backend.po.Order order : allOrders) {
+                if (Integer.parseInt(OP.getOrderId()) == order.getId()) {
                     SPTPVOList.addAll(OP.getScheduleProductionTableProductionVo(order.getProductId()));
                 }
             }
@@ -304,7 +317,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable() {
-        List<ScheduleProductionResourceTableProductionVo> SPRTPVOList=new ArrayList<>();
+        List<ScheduleProductionResourceTableProductionVo> SPRTPVOList = new ArrayList<>();
 
         for (OrderProduction OP : orderProductionRepository.findAll()) {
             SPRTPVOList.addAll(OP.getScheduleProductionResourceTableProductionVoS());
