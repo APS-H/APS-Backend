@@ -7,7 +7,7 @@ services:
   - docker
 
 addons:
-  ssh_known_hosts: 123.57.73.97
+  ssh_known_hosts: 8.131.96.86
 
 cache:
   directories:
@@ -26,15 +26,12 @@ before_script:
 # 执行构建脚本
 script:
   - mvn -B -DskipTests clean install package -P prod
-  #  - docker build -t registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND .
-  #  - echo -n 'YXBzaC1wZWlob25nY2hlbg==' | base64 --decode | docker login --username=876684433@qq.com --password-stdin registry.cn-beijing.aliyuncs.com
-  #  - docker push registry.cn-beijing.aliyuncs.com/chenpeihong/$APSH_BACKEND
   - docker build -t chph/$APSH_BACKEND .
-  - echo -n 'Q2hwaDExNDk3NTQ4Mjk=' | base64 --decode | docker login --username=chph --password-stdin
-  - docker push chph/$APSH_BACKEND
 
 # 构建脚本执行成功后执行
 after_success:
+  - echo -n 'Q2hwaDExNDk3NTQ4Mjk=' | base64 --decode | docker login --username=chph --password-stdin
+  - docker push chph/$APSH_BACKEND
 
 # 构建脚本执行失败后执行
 after_failure:
@@ -50,7 +47,7 @@ before_deploy:
 deploy:
   # 后面可以考虑为不同的分支设置不同的部署策略，即使用环境变量的方式动态修改kubernetes/*.yaml中的内容
   provider: script
-  script: scp ./kubernetes/*.yaml root@123.57.73.97:~/apsh/ && ssh root@123.57.73.97 "kubectl apply -f ~/apsh"
+  script: scp ./kubernetes/*.yaml root@8.131.96.86:~/apsh/ && ssh root@8.131.96.86 "kubectl apply -f ~/apsh"
   on:
     all_branches: true
 

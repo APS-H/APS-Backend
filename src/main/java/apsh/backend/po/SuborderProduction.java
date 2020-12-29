@@ -1,7 +1,10 @@
 package apsh.backend.po;
 
 import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,19 +48,23 @@ public class SuborderProduction {
     @Column(name = "device_id")
     private String deviceId;
 
-    public long getWorkTime() {
+    public long getWorkMinutes() {
         return ChronoUnit.MINUTES.between(endTime.toLocalDateTime(), startTime.toLocalDateTime());
-    };
+    }
 
-    public ScheduleProductionResourceTableProductionVo getgetScheduleProductionResourceTableProductionVoS(){
-        List<ResourceInScheduleProductionResourceTableProductionVo> resources=new ArrayList<>();
-        for(String manid:manpowerIds){
-            ResourceInScheduleProductionResourceTableProductionVo resource=new ResourceInScheduleProductionResourceTableProductionVo(manid,0,1);
+    public long getWorkHours() {
+        return ChronoUnit.HOURS.between(startTime.toLocalDateTime(), endTime.toLocalDateTime());
+    }
+
+    public ScheduleProductionResourceTableProductionVo getgetScheduleProductionResourceTableProductionVoS() {
+        List<ResourceInScheduleProductionResourceTableProductionVo> resources = new ArrayList<>();
+        for (String manid : manpowerIds) {
+            ResourceInScheduleProductionResourceTableProductionVo resource = new ResourceInScheduleProductionResourceTableProductionVo(manid, 0, 1);
             resources.add(resource);
         }
-        ResourceInScheduleProductionResourceTableProductionVo dresource=new ResourceInScheduleProductionResourceTableProductionVo(deviceId,1,1);
+        ResourceInScheduleProductionResourceTableProductionVo dresource = new ResourceInScheduleProductionResourceTableProductionVo(deviceId, 1, 1);
         resources.add(dresource);
-        ScheduleProductionResourceTableProductionVo res=new ScheduleProductionResourceTableProductionVo(suborderId,resources);
+        ScheduleProductionResourceTableProductionVo res = new ScheduleProductionResourceTableProductionVo(suborderId, resources);
         return res;
 
     }
