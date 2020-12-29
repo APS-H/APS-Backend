@@ -33,6 +33,7 @@ import apsh.backend.repository.OrderProductionRepository;
 import apsh.backend.service.ScheduleService;
 import apsh.backend.serviceimpl.scheduleservice.Device;
 import apsh.backend.serviceimpl.scheduleservice.Manpower;
+import apsh.backend.serviceimpl.scheduleservice.ManpowerCombination;
 import apsh.backend.serviceimpl.scheduleservice.Order;
 import apsh.backend.serviceimpl.scheduleservice.Suborder;
 import apsh.backend.serviceimpl.scheduleservice.SuborderSolution;
@@ -94,12 +95,21 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
-            List<OrderDto> orderDtos, Date startTime) {
+            List<OrderDto> orderDtos, Date startTime, double denseFactor) {
         // 初始化状态
         List<Manpower> manpowers = manpowerDtos.stream()
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
                         manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
                 .collect(Collectors.toList());
+        List<ManpowerCombination> combinations = new ArrayList<>();
+        for (int i = 0; i < manpowers.size(); i++) {
+            combinations.add(new ManpowerCombination(manpowers.get(i), null));
+            for (int j = i + 1; j < manpowers.size(); j++) {
+                if (manpowers.get(i).canWorkWith(manpowers.get(j)))
+                    combinations.add(new ManpowerCombination(manpowers.get(i), manpowers.get(j)));
+            }
+        }
+
         List<Device> devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
         List<Order> orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
         currentSolverJob = null;
@@ -107,7 +117,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         stateJobSubmitted = true;
         stateSolutionSaved = false;
 
-        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, startTime);
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, startTime, denseFactor);
 
         List<Suborder> suborders = splitOrders(orders, startTime, false);
 
@@ -115,14 +125,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
         SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), new ArrayList<>(),
-                manpowers, devices, timeGrains, suborders, null);
+                combinations, devices, timeGrains, suborders, null);
         UUID problemId = UUID.randomUUID();
         currentSolverJob = solverManager.solve(problemId, solution);
     }
 
     @Override
     public void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-            OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+            OrderDto urgentOrderDto, Date insertTime, Date startTime, double denseFactor) {
         if (!stateJobSubmitted)
             throw new RuntimeException("还没有排程");
         // 如果结果没有保存说明排程可能正在运行
@@ -137,6 +147,14 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
                         manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
                 .collect(Collectors.toList());
+        List<ManpowerCombination> combinations = new ArrayList<>();
+        for (int i = 0; i < manpowers.size(); i++) {
+            combinations.add(new ManpowerCombination(manpowers.get(i), null));
+            for (int j = i + 1; j < manpowers.size(); j++) {
+                if (manpowers.get(i).canWorkWith(manpowers.get(j)))
+                    combinations.add(new ManpowerCombination(manpowers.get(i), manpowers.get(j)));
+            }
+        }
         List<Device> devices = deviceDtos.stream().map(Device::fromDto).collect(Collectors.toList());
         List<Order> orders = orderDtos.stream().map(Order::fromDto).collect(Collectors.toList());
         Order urgentOrder = Order.fromDto(urgentOrderDto);
@@ -177,17 +195,15 @@ public class ScheduleServiceImpl implements ScheduleService {
                     dirtySuborders.add(suborder);
                 else {
                     // 使用之前的结果
-                    suborder.setManpowerA(manpowerMap.get(dto.getManpowerIds().get(0)));
-                    if (dto.getManpowerIds().size() > 1)
-                        suborder.setManpowerB(manpowerMap.get(dto.getManpowerIds().get(1)));
-                    if (dto.getManpowerIds().size() > 2)
-                        suborder.setManpowerC(manpowerMap.get(dto.getManpowerIds().get(2)));
+                    Manpower a = manpowerMap.get(dto.getManpowerIds().get(0));
+                    Manpower b = manpowerMap.get(dto.getManpowerIds().get(1));
+                    suborder.setManpowerCombination(new ManpowerCombination(a, b));
                     suborder.setDevice(deviceMap.get(dto.getDeviceId()));
                     fixedSuborders.add(suborder);
                 }
             }
 
-        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, insertTime);
+        List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, insertTime, denseFactor);
 
         // 重新排程
         dirtySuborders.addAll(urgentSuborder);
@@ -195,7 +211,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
         SuborderSolution solution = new SuborderSolution(startTimeCalendar.get(Calendar.HOUR_OF_DAY), new ArrayList<>(),
-                manpowers, devices, timeGrains, dirtySuborders, null);
+                combinations, devices, timeGrains, dirtySuborders, null);
         UUID problemId = UUID.randomUUID();
         currentSolverJob = solverManager.solve(problemId, solution);
     }
@@ -270,9 +286,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
 
         }
-    for(SchedulePlanTableOrderVo i:SPOVOList){
-        i.Caculate();
-    }
+        for (SchedulePlanTableOrderVo i : SPOVOList) {
+            i.Caculate();
+        }
         return SPOVOList;
     }
 
@@ -290,10 +306,10 @@ public class ScheduleServiceImpl implements ScheduleService {
     public List<ScheduleProductionTableProductionVo> getProductionTable() {
         List<apsh.backend.po.Order> allOrders = legacySystemService.getAllOrders();
 
-        List<ScheduleProductionTableProductionVo> SPTPVOList=new ArrayList<>();
+        List<ScheduleProductionTableProductionVo> SPTPVOList = new ArrayList<>();
         for (OrderProduction OP : orderProductionRepository.findAll()) {
-            for(apsh.backend.po.Order order:allOrders){
-                if(Integer.parseInt(OP.getOrderId())==order.getId()){
+            for (apsh.backend.po.Order order : allOrders) {
+                if (Integer.parseInt(OP.getOrderId()) == order.getId()) {
                     SPTPVOList.addAll(OP.getScheduleProductionTableProductionVo(order.getProductId()));
                 }
             }
@@ -304,7 +320,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable() {
-        List<ScheduleProductionResourceTableProductionVo> SPRTPVOList=new ArrayList<>();
+        List<ScheduleProductionResourceTableProductionVo> SPRTPVOList = new ArrayList<>();
 
         for (OrderProduction OP : orderProductionRepository.findAll()) {
             SPRTPVOList.addAll(OP.getScheduleProductionResourceTableProductionVoS());
@@ -317,11 +333,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     /**
      * 生成所有的时间粒度
      */
-    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime, Date availableStartTime) {
+    private List<TimeGrain> generateTimeGrains(List<Order> orders, Date startTime, Date availableStartTime,
+            double denseFactor) {
         int availableTimeGrainCount = 0;
         for (Order order : orders)
             availableTimeGrainCount += order.getNeedTimeInHour() / maxSuborderNeedTimeInHour + 1;
-        availableTimeGrainCount = availableTimeGrainCount / 3 + 10;
+        availableTimeGrainCount = (int) ((double) availableTimeGrainCount * denseFactor) + 5;
         List<TimeGrain> timeGrains = new ArrayList<>(availableTimeGrainCount);
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
