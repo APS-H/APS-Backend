@@ -11,44 +11,52 @@ import apsh.backend.vo.ScheduleOrderProductionTableRelationVo;
 import apsh.backend.vo.SchedulePlanTableOrderVo;
 import apsh.backend.vo.ScheduleProductionResourceTableProductionVo;
 import apsh.backend.vo.ScheduleProductionTableProductionVo;
-import org.springframework.web.bind.annotation.RequestParam;
 
 public interface ScheduleService {
-        /**
-         * 安排初始订单
-         */
-        void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-                        Date startTime);
+    default void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
+            List<OrderDto> orderDtos, Date startTime) {
+        arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime, 1.0);
+    }
 
-        /**
-         * 在已有初始订单安排的情况下安排新插入的紧急订单
-         */
-        void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
-                        OrderDto urgentOrderDto, Date insertTime, Date startTime);
+    /**
+     * 安排初始订单
+     */
+    void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
+            Date startTime, double denseFactor);
 
-        /**
-         * 移除当前的排程结果 如果有排程正在进行它将会被强制终止
-         */
-        void removeCurrentArrangement();
+    default void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
+            List<OrderDto> orderDtos, OrderDto urgentOrderDto, Date insertTime, Date startTime) {
+        arrangeUrgentOrder(manpowerDtos, deviceDtos, orderDtos, urgentOrderDto, insertTime, startTime, 1.0);
+    }
 
-        /**
-         * 尝试获取当前的排程结果
-         * 
-         * @return 如果目前正在排程将会返回null 否则返回排程结果
-         */
-        List<OrderProductionDto> tryGetCurrentArrangement();
+    /**
+     * 在已有初始订单安排的情况下安排新插入的紧急订单
+     */
+    void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos, List<OrderDto> orderDtos,
+            OrderDto urgentOrderDto, Date insertTime, Date startTime, double denseFactor);
 
-        /**
-         * 阻塞式获取排程结果
-         */
-        List<OrderProductionDto> getCurrentArrangment();
+    /**
+     * 移除当前的排程结果 如果有排程正在进行它将会被强制终止
+     */
+    void removeCurrentArrangement();
 
+    /**
+     * 尝试获取当前的排程结果
+     * 
+     * @return 如果目前正在排程将会返回null 否则返回排程结果
+     */
+    List<OrderProductionDto> tryGetCurrentArrangement();
 
-        List<SchedulePlanTableOrderVo> getPlanTable();
+    /**
+     * 阻塞式获取排程结果
+     */
+    List<OrderProductionDto> getCurrentArrangment();
 
-        List<ScheduleOrderProductionTableRelationVo> getOrderProductionTable();
+    List<SchedulePlanTableOrderVo> getPlanTable();
 
-        List<ScheduleProductionTableProductionVo> getProductionTable();
+    List<ScheduleOrderProductionTableRelationVo> getOrderProductionTable();
 
-        List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable();
+    List<ScheduleProductionTableProductionVo> getProductionTable();
+
+    List<ScheduleProductionResourceTableProductionVo> getProductionResourceTable();
 }
