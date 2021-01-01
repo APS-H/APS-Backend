@@ -46,7 +46,7 @@ public class SuborderProduction {
     private String deviceId;
 
     public long getWorkTime() {
-        return ChronoUnit.MINUTES.between(endTime.toLocalDateTime(), startTime.toLocalDateTime());
+        return ChronoUnit.MINUTES.between(startTime.toLocalDateTime(), endTime.toLocalDateTime());
     };
 
     public ScheduleProductionResourceTableProductionVo getgetScheduleProductionResourceTableProductionVoS(){

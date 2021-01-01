@@ -117,11 +117,27 @@ public class OrderServiceImpl implements OrderService, GodService {
     public OrderProgressVo getOrderProgress(Date date) {
         List<OrderProduction> orderProductions = orderProductionRepository.findAll();
         List<OrderInOrderProgressVo> progress = orderProductions.parallelStream().map(o -> {
-            return o.getOrderInOrderProgress(date);
+            Optional<Order> order = orderRepository.findById(o.getId());
+            if (order.isPresent()) {
+                return o.getOrderInOrderProgress(date, order.get().getDeliveryDate());
+            } else {
+                return null;
+            }
+//            return o.getOrderInOrderProgress(date, date);
         }).collect(Collectors.toList());
-        OptionalDouble totalrate = progress.stream().mapToDouble(o -> o.getAssembleRate()).average();
-        OrderProgressVo OPVO = new OrderProgressVo(totalrate.getAsDouble(), progress);
-        return OPVO;
+        progress=progress.stream().filter(o->{
+           return o==null? false:true;
+        }).collect(Collectors.toList());
+        OptionalDouble totalrate;
+        if (progress.size() > 0) {
+            totalrate = progress.stream().mapToDouble(o -> o.getAssembleRate()).average();
+            OrderProgressVo OPVO = new OrderProgressVo(totalrate.getAsDouble(), progress);
+            return OPVO;
+        } else {
+            OrderProgressVo OPVO = new OrderProgressVo(1.0, progress);
+            return OPVO;
+        }
+
     }
 
     public void add(CustomerOrderDto order) {

@@ -49,17 +49,19 @@ public class OrderProduction {
         return origin;
     }
 
-    public OrderInOrderProgressVo getOrderInOrderProgress(Date date) {
+    public OrderInOrderProgressVo getOrderInOrderProgress(Date date, Date deliveryDate) {
         List<SuborderProduction> origin = new ArrayList<>(suborderProductions);
         origin = origin.stream().sorted((t1, t2) -> {
-            if (t2.getStartTime().after(t1.getStartTime())) {
+            Date date1 = new Date(t1.getEndTime().getTime());
+            Date date2 = new Date(t2.getEndTime().getTime());
+            if (date1.compareTo(date2) >= 0) {
                 return 1;
 
             } else {
-                return 0;
+                return -1;
             }
         }).collect(Collectors.toList());
-
+        Date EndDate = new Date(origin.get(origin.size()-1).getEndTime().getTime());
         long total = origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream()
                 .mapToLong(o -> o).sum();
 
@@ -70,7 +72,8 @@ public class OrderProduction {
         }).collect(Collectors.toList()).stream().mapToLong(o -> o.getWorkTime()).sum();
 
         Double rate = ((double) work) / total;
-        OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, 1.0, false);
+
+        OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, 1.0, (deliveryDate.compareTo(EndDate)<0));
         return OIPVO;
 
     }
