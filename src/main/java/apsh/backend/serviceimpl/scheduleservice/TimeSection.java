@@ -13,18 +13,14 @@ public class TimeSection {
     @NonNull
     private Integer start;
     @NonNull
-    private Integer end;
-
-    public boolean cover(TimeSection other) {
-        return start <= other.start && other.end <= end;
-    }
+    private Integer lastTime;
 
     public static TimeSection fromDto(TimeSectionDto dto) {
-        return new TimeSection(dto.getStart(), dto.getEnd());
+        return new TimeSection(dto.getStart(), dto.getLastTime());
     }
 
     @Override
     public String toString() {
-        return "[" + start.toString() + ", " + end.toString() + "]";
+        return "{" + start.toString() + ", " + lastTime.toString() + "}";
     }
 }
