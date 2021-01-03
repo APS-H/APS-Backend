@@ -168,6 +168,29 @@ public class ScheduleServiceTest {
     }
 
     @Test
+    void testStage() throws ParseException {
+        List<ManpowerDto> manpowerDtos = new ArrayList<>();
+        manpowerDtos.add(new ManpowerDto("man1", 5, dayTime));
+        manpowerDtos.add(new ManpowerDto("man2", 5, dayTime));
+
+        List<DeviceDto> deviceDtos = new ArrayList<>();
+        deviceDtos.add(new DeviceDto("dev1", "line1"));
+        deviceDtos.add(new DeviceDto("dev2", "line1"));
+
+        List<OrderDto> orderDtos = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+        Date startTime = dateFormat.parse("2020-11-02 7");
+        orderDtos.add(new OrderDto("order1 装配", false, 24, 5, dateFormat.parse("2020-11-22 09"), Arrays.asList("man1"),
+                Arrays.asList("line1"), null));
+        orderDtos.add(new OrderDto("order1 测试", false, 24, 5, dateFormat.parse("2020-11-22 12"), Arrays.asList("man2"),
+                Arrays.asList("line1"), "order1 装配"));
+        service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
+        List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
+        System.out.println(orderProductionDtos.size());
+        assert (orderProductionDtos.size() >= 1);
+    }
+
+    @Test
     void testGetArrangement() throws ParseException {
         List<ManpowerDto> manpowerDtos = new ArrayList<>();
         manpowerDtos.add(new ManpowerDto("man1", 5, dayTime));

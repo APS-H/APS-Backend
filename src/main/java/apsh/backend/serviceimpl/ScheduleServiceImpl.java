@@ -392,8 +392,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
         }
         for (Suborder suborder : suborders)
-            if (suborder.getPredecessorOrderId() != null)
-                suborder.setPredecessors(suborderMap.get(suborder.getPredecessorOrderId()));
+            suborder.setPredecessors(suborderMap.get(suborder.getPredecessorOrderId()));
         return suborders;
     }
 

@@ -89,6 +89,17 @@ public class Suborder {
         return !availableDeviceTypeIdSet.contains(device.getDeviceTypeId());
     }
 
+    public int predecessorNotComplete() {
+        if (predecessors == null)
+            return 0;
+        int count = 0;
+        for (Suborder suborder : predecessors) {
+            if (suborder.timeGrain != null && timeGrain != null && suborder.timeGrain.getIndex() > timeGrain.getIndex())
+                count++;
+        }
+        return count;
+    }
+
     // 两个订单使用了相同的人力资源
     public boolean manpowerCross(Suborder other) {
         return manpowerCombination.cross(other.manpowerCombination);

@@ -19,7 +19,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return new Constraint[] { urgentOrderDelay(constraintFactory), manpowerNotAvailable(constraintFactory),
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
                 manpowerPeopleNotEnough(constraintFactory), manpowerConflict(constraintFactory),
-                deviceConflict(constraintFactory), softDelay(constraintFactory), softEarlyFinish(constraintFactory),
+                deviceConflict(constraintFactory), predecessorNotComplete(constraintFactory), softDelay(constraintFactory), softEarlyFinish(constraintFactory),
                 softDeviceLoadBalance(constraintFactory), softManpowerLoadBalance(constraintFactory) };
     }
 
@@ -68,6 +68,12 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 .from(Suborder.class).join(Suborder.class, Joiners.lessThan(Suborder::getId),
                         Joiners.equal(Suborder::getDevice), Joiners.equal(Suborder::getTimeGrain))
                 .penalize("Device conflict", HardSoftScore.ONE_HARD);
+    }
+
+    private Constraint predecessorNotComplete(ConstraintFactory constraintFactory) {
+        // 测试、装配要有顺序
+        return constraintFactory.from(Suborder.class).penalize("Suborder predecessor not complete",
+                HardSoftScore.ONE_HARD, Suborder::predecessorNotComplete);
     }
 
     private Constraint softDelay(ConstraintFactory constraintFactory) {
