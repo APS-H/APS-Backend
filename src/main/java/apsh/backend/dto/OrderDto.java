@@ -3,12 +3,10 @@ package apsh.backend.dto;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import apsh.backend.po.Craft;
 import apsh.backend.po.Equipment;
 import apsh.backend.po.Human;
-import apsh.backend.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,6 +37,10 @@ public class OrderDto {
      * 可供选择的设备id列表
      */
     private List<String> availableDeviceTypeIdList;
+    /**
+     * 前驱订单的id，比如测试的前驱是装配
+     */
+    private String predeceesorOrderId;
 
     public OrderDto(CustomerOrderDto customerOrderDto, Craft craft) {
         this(customerOrderDto, craft, false);

@@ -23,6 +23,8 @@ public class Suborder {
     @NonNull
     private String orderId;
     @NonNull
+    private String predecessorOrderId;
+    @NonNull
     private Boolean urgent;
     @NonNull
     private Integer needTimeInHour;
@@ -34,6 +36,8 @@ public class Suborder {
     private HashSet<String> availableDeviceTypeIdSet;
     @NonNull
     private Integer deadlineTimeGrainIndex;
+
+    private List<Suborder> predecessors;
 
     @PlanningVariable(valueRangeProviderRefs = "manpowerCombinationRange")
     private ManpowerCombination manpowerCombination;
@@ -96,8 +100,8 @@ public class Suborder {
 
     public static Suborder create(Order order, int index, boolean urgent, int needTimeInHour,
             int deadlineTimeGrainIndex) {
-        return new Suborder(order.getId() + " " + index, order.getId(), urgent, needTimeInHour,
-                order.getNeedPeopleCount(), order.getAvailableManpowerIdSet(), order.getAvailableDeviceTypeIdSet(),
-                deadlineTimeGrainIndex);
+        return new Suborder(order.getId() + " " + index, order.getId(), order.getPredecessorOrderId(), urgent,
+                needTimeInHour, order.getNeedPeopleCount(), order.getAvailableManpowerIdSet(),
+                order.getAvailableDeviceTypeIdSet(), deadlineTimeGrainIndex);
     }
 }

@@ -83,7 +83,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
     private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
         // 设备利用率尽可能高
-        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).penalize(
+        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).reward(
                 "Soft device load balance", HardSoftScore.ONE_SOFT,
                 DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
     }
@@ -154,7 +154,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         }
 
         public int getZeroDeviationSquaredSumRoot() {
-            return -(int) (Math.sqrt((double) squaredSum));
+            return (int) (Math.sqrt((double) squaredSum));
         }
     }
 

@@ -46,9 +46,9 @@ public class ScheduleServiceTest {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         Date startTime = dateFormat.parse("2020-10-01 7");
         orderDtos.add(new OrderDto("order1", false, 24, 4, dateFormat.parse("2020-10-02 09"), Arrays.asList("丁A", "刘B"),
-                Arrays.asList("line1")));
+                Arrays.asList("line1"), null));
         orderDtos.add(new OrderDto("order2", false, 96, 3, dateFormat.parse("2020-10-02 09"), Arrays.asList("张C", "赵D"),
-                Arrays.asList("line2", "line3")));
+                Arrays.asList("line2", "line3"), null));
 
         service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
         List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
@@ -95,9 +95,9 @@ public class ScheduleServiceTest {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         Date startTime = dateFormat.parse("2020-10-01 7");
         orderDtos.add(new OrderDto("order1", false, 24, 4, dateFormat.parse("2020-10-02 09"),
-                Arrays.asList("丁A", "刘B", "张C", "赵D"), Arrays.asList("line3")));
+                Arrays.asList("丁A", "刘B", "张C", "赵D"), Arrays.asList("line3"), null));
         orderDtos.add(new OrderDto("order2", false, 96, 3, dateFormat.parse("2020-10-02 09"),
-                Arrays.asList("c1", "c2", "c3", "c4"), Arrays.asList("line1", "line2")));
+                Arrays.asList("c1", "c2", "c3", "c4"), Arrays.asList("line1", "line2"), null));
 
         service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
         List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
@@ -121,11 +121,11 @@ public class ScheduleServiceTest {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         Date startTime = dateFormat.parse("2020-11-02 7");
         orderDtos.add(new OrderDto("order1", false, 24, 5, dateFormat.parse("2020-11-22 09"), Arrays.asList("man1"),
-                Arrays.asList("line1")));
+                Arrays.asList("line1"), null));
         orderDtos.add(new OrderDto("order2", false, 24, 5, dateFormat.parse("2020-11-22 12"), Arrays.asList("man2"),
-                Arrays.asList("line1")));
+                Arrays.asList("line1"), null));
         orderDtos.add(new OrderDto("order3", false, 24, 5, dateFormat.parse("2020-11-22 14"), Arrays.asList("man3"),
-                Arrays.asList("line1")));
+                Arrays.asList("line1"), null));
         service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
         List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
         System.out.println(orderProductionDtos.size());
@@ -156,11 +156,11 @@ public class ScheduleServiceTest {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         Date startTime = dateFormat.parse("2020-11-02 7");
         orderDtos.add(new OrderDto("order1", false, 24, 5, dateFormat.parse("2020-11-02 09"),
-                Arrays.asList("man1", "man2"), Arrays.asList("line1")));
+                Arrays.asList("man1", "man2"), Arrays.asList("line1"), null));
         orderDtos.add(new OrderDto("order2", false, 24, 5, dateFormat.parse("2020-11-02 12"),
-                Arrays.asList("man3", "man4"), Arrays.asList("line2")));
+                Arrays.asList("man3", "man4"), Arrays.asList("line2"), null));
         orderDtos.add(new OrderDto("order3", false, 24, 5, dateFormat.parse("2020-11-02 14"),
-                Arrays.asList("man5", "man6"), Arrays.asList("line3")));
+                Arrays.asList("man5", "man6"), Arrays.asList("line3"), null));
         service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
         List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
         System.out.println(orderProductionDtos.size());
@@ -208,15 +208,15 @@ public class ScheduleServiceTest {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         Date startTime = dateFormat.parse("2020-10-11 7");
         orderDtos.add(new OrderDto("order1", false, 36, 7, dateFormat.parse("2020-11-02 09"),
-                Arrays.asList("man7", "man8", "man10", "man11"), Arrays.asList("line3", "line4")));
+                Arrays.asList("man7", "man8", "man10", "man11"), Arrays.asList("line3", "line4"), null));
         orderDtos.add(new OrderDto("order2", false, 48, 8, dateFormat.parse("2020-11-02 12"),
-                Arrays.asList("man5", "man6", "man14", "man15"), Arrays.asList("line1", "line2")));
+                Arrays.asList("man5", "man6", "man14", "man15"), Arrays.asList("line1", "line2"), null));
         orderDtos.add(new OrderDto("order3", false, 24, 6, dateFormat.parse("2020-11-02 14"),
-                Arrays.asList("man3", "man4", "man11", "man12"), Arrays.asList("line2", "line3")));
+                Arrays.asList("man3", "man4", "man11", "man12"), Arrays.asList("line2", "line3"), null));
         orderDtos.add(new OrderDto("order4", false, 48, 8, dateFormat.parse("2020-11-02 14"),
-                Arrays.asList("man1", "man2", "man12", "man13"), Arrays.asList("line1", "line4")));
+                Arrays.asList("man1", "man2", "man12", "man13"), Arrays.asList("line1", "line4"), null));
         orderDtos.add(new OrderDto("order5", false, 60, 9, dateFormat.parse("2020-11-02 14"),
-                Arrays.asList("man1", "man3", "man9", "man10"), Arrays.asList("line1", "line3")));
+                Arrays.asList("man1", "man3", "man9", "man10"), Arrays.asList("line1", "line3"), null));
         service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
         List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
         System.out.println(orderProductionDtos.size());
@@ -250,16 +250,16 @@ public class ScheduleServiceTest {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         Date startTime = dateFormat.parse("2020-11-01 11");
         orderDtos.add(new OrderDto("1", false, 4, 7, dateFormat.parse("2020-11-02 09"), Arrays.asList("man1", "man2"),
-                Arrays.asList("line1")));
+                Arrays.asList("line1"), null));
         orderDtos.add(new OrderDto("3", false, 4, 6, dateFormat.parse("2020-11-02 14"), Arrays.asList("man3", "man4"),
-                Arrays.asList("line1", "line2")));
+                Arrays.asList("line1", "line2"), null));
         service.arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime);
         List<OrderProductionDto> orderProductionDtos = service.getCurrentArrangment();
         System.out.println(orderProductionDtos.size());
         assert (orderProductionDtos.size() >= 1);
         // 插入订单
         OrderDto urgentOrderDto = new OrderDto("4", true, 4, 8, dateFormat.parse("2020-11-03 07"),
-                Arrays.asList("man1", "man2", "man3"), Arrays.asList("line1", "line2"));
+                Arrays.asList("man1", "man2", "man3"), Arrays.asList("line1", "line2"), null);
         service.arrangeUrgentOrder(manpowerDtos, deviceDtos, orderDtos, urgentOrderDto,
                 dateFormat.parse("2020-11-01 13"), startTime);
         orderProductionDtos = service.getCurrentArrangment();

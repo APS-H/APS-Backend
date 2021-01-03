@@ -31,6 +31,9 @@ public class OrderProduction {
     @Column(name = "order_id")
     private String orderId;
 
+    @Column(name = "predecessor_order_id")
+    private String predecessorOrderId;
+
     @JoinColumn(name = "order_production_id")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<SuborderProduction> suborderProductions;
