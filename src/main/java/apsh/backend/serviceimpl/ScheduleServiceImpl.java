@@ -90,9 +90,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     public void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
             List<OrderDto> orderDtos, Date startTime, double denseFactor) {
         // 初始化状态
-        List<Manpower> manpowers = manpowerDtos.stream()
-                .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
-                        manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
+        List<Manpower> manpowers = manpowerDtos.stream().map(manpowerDto -> new Manpower(manpowerDto.getId(),
+                manpowerDto.getPeopleCount(), TimeSection.fromDto(manpowerDto.getWorkSection())))
                 .collect(Collectors.toList());
         List<ManpowerCombination> combinations = new ArrayList<>();
         for (int i = 0; i < manpowers.size(); i++) {
@@ -136,9 +135,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             tryGetCurrentArrangement();
         }
         // 初始化状态
-        List<Manpower> manpowers = manpowerDtos.stream()
-                .map(manpowerDto -> new Manpower(manpowerDto.getId(), manpowerDto.getPeopleCount(),
-                        manpowerDto.getWorkSections().stream().map(TimeSection::fromDto).collect(Collectors.toList())))
+        List<Manpower> manpowers = manpowerDtos.stream().map(manpowerDto -> new Manpower(manpowerDto.getId(),
+                manpowerDto.getPeopleCount(), TimeSection.fromDto(manpowerDto.getWorkSection())))
                 .collect(Collectors.toList());
         List<ManpowerCombination> combinations = new ArrayList<>();
         for (int i = 0; i < manpowers.size(); i++) {

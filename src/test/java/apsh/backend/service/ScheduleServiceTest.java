@@ -23,9 +23,9 @@ public class ScheduleServiceTest {
     ScheduleService service;
 
     // 早班
-    static final List<TimeSectionDto> dayTime = Arrays.asList(new TimeSectionDto(7, 19));
+    static final TimeSectionDto dayTime = new TimeSectionDto(7, 12);
     // 晚班
-    static final List<TimeSectionDto> nightTime = Arrays.asList(new TimeSectionDto(19, 24), new TimeSectionDto(0, 7));
+    static final TimeSectionDto nightTime = new TimeSectionDto(19, 12);
 
     @Test
     void testGetArrangementSimple() throws ParseException {
