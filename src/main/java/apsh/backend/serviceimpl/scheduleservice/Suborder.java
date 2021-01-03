@@ -79,7 +79,7 @@ public class Suborder {
             return false;
         if (manpowerCombination == null)
             return false;
-        return manpowerCombination.canWork(timeGrain.getHourOfDay(), needTimeInHour);
+        return !manpowerCombination.canWork(timeGrain.getHourOfDay(), needTimeInHour);
     }
 
     // 设备不可用
@@ -89,6 +89,7 @@ public class Suborder {
         return !availableDeviceTypeIdSet.contains(device.getDeviceTypeId());
     }
 
+    // 前驱任务必须安排在之前
     public int predecessorNotComplete() {
         if (predecessors == null)
             return 0;
