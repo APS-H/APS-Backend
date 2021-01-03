@@ -164,9 +164,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         HashMap<String, Device> deviceMap = new HashMap<>();
         for (Device device : devices)
             deviceMap.put(device.getId(), device);
+
         List<Suborder> urgentSuborder = splitOrders(Arrays.asList(urgentOrder), insertTime, true);
         List<Suborder> fixedSuborders = new ArrayList<>();
         List<Suborder> dirtySuborders = new ArrayList<>();
+        HashMap<String, List<Suborder>> dirtySuborderMap = new HashMap<>();
         for (OrderProductionDto orderProductionDto : solutionDto)
             for (SuborderProductionDto dto : orderProductionDto.getSuborders()) {
                 String orderId = orderProductionDto.getId();
@@ -178,9 +180,13 @@ public class ScheduleServiceImpl implements ScheduleService {
                 Suborder suborder = new Suborder(dto.getId(), orderId, orderProductionDto.getPredecessorOrderId(),
                         order.getUrgent(), needTimeInHour, order.getNeedPeopleCount(),
                         order.getAvailableManpowerIdSet(), order.getAvailableDeviceTypeIdSet(), ddlTimeGrainIndex);
-                if (dto.getStartTime().after(insertTime))
+                if (dto.getStartTime().after(insertTime)) {
                     // 需要重新排程
                     dirtySuborders.add(suborder);
+                    if (!dirtySuborderMap.containsKey(orderId))
+                        dirtySuborderMap.put(orderId, new ArrayList<>());
+                    dirtySuborderMap.get(orderId).add(suborder);
+                }
                 else {
                     // 使用之前的结果
                     Manpower a = manpowerMap.get(dto.getManpowerIds().get(0));
@@ -190,6 +196,9 @@ public class ScheduleServiceImpl implements ScheduleService {
                     fixedSuborders.add(suborder);
                 }
             }
+
+        for (Suborder suborder : dirtySuborders)
+            suborder.setPredecessors(dirtySuborderMap.get(suborder.getPredecessorOrderId()));
 
         List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, insertTime, denseFactor);
 
