@@ -2,6 +2,7 @@ package apsh.backend.serviceimpl;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -79,7 +80,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                         po.getStartTime() == null ? null : new Date(po.getStartTime().getTime()),
                         po.getEndTime() == null ? null : new Date(po.getEndTime().getTime()),
                         new ArrayList<>(po.getManpowerIds()), po.getDeviceId()));
-            OrderProductionDto dto = new OrderProductionDto(orderProductionPo.getOrderId(), suborderProductionDtos);
+            OrderProductionDto dto = new OrderProductionDto(orderProductionPo.getOrderId(),
+                    orderProductionPo.getPredecessorOrderId(), suborderProductionDtos);
             solutionDto.add(dto);
         }
         stateJobSubmitted = true;
@@ -162,28 +164,29 @@ public class ScheduleServiceImpl implements ScheduleService {
         HashMap<String, Device> deviceMap = new HashMap<>();
         for (Device device : devices)
             deviceMap.put(device.getId(), device);
+
         List<Suborder> urgentSuborder = splitOrders(Arrays.asList(urgentOrder), insertTime, true);
         List<Suborder> fixedSuborders = new ArrayList<>();
         List<Suborder> dirtySuborders = new ArrayList<>();
+        HashMap<String, List<Suborder>> dirtySuborderMap = new HashMap<>();
         for (OrderProductionDto orderProductionDto : solutionDto)
             for (SuborderProductionDto dto : orderProductionDto.getSuborders()) {
                 String orderId = orderProductionDto.getId();
                 Order order = orderMap.get(orderId);
-                Suborder suborder = new Suborder();
-                suborder.setId(dto.getId());
-                suborder.setOrderId(orderId);
-                suborder.setUrgent(order.getUrgent());
-                suborder.setNeedTimeInHour(
-                        (int) ((dto.getEndTime().getTime() - dto.getStartTime().getTime()) / millisecondCountPerHour));
-                suborder.setNeedPeopleCount(order.getNeedPeopleCount());
-                suborder.setAvailableManpowerIdSet(order.getAvailableManpowerIdSet());
-                suborder.setAvailableDeviceTypeIdSet(order.getAvailableDeviceTypeIdSet());
+                int needTimeInHour = (int) ((dto.getEndTime().getTime() - dto.getStartTime().getTime())
+                        / millisecondCountPerHour);
                 int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
                         / millisecondCountPerHour / maxSuborderNeedTimeInHour);
-                suborder.setDeadlineTimeGrainIndex(ddlTimeGrainIndex);
-                if (dto.getStartTime().after(insertTime))
+                Suborder suborder = new Suborder(dto.getId(), orderId, orderProductionDto.getPredecessorOrderId(),
+                        order.getUrgent(), needTimeInHour, order.getNeedPeopleCount(),
+                        order.getAvailableManpowerIdSet(), order.getAvailableDeviceTypeIdSet(), ddlTimeGrainIndex);
+                if (dto.getStartTime().after(insertTime)) {
                     // 需要重新排程
                     dirtySuborders.add(suborder);
+                    if (!dirtySuborderMap.containsKey(orderId))
+                        dirtySuborderMap.put(orderId, new ArrayList<>());
+                    dirtySuborderMap.get(orderId).add(suborder);
+                }
                 else {
                     // 使用之前的结果
                     Manpower a = manpowerMap.get(dto.getManpowerIds().get(0));
@@ -193,6 +196,9 @@ public class ScheduleServiceImpl implements ScheduleService {
                     fixedSuborders.add(suborder);
                 }
             }
+
+        for (Suborder suborder : dirtySuborders)
+            suborder.setPredecessors(dirtySuborderMap.get(suborder.getPredecessorOrderId()));
 
         List<TimeGrain> timeGrains = generateTimeGrains(orders, startTime, insertTime, denseFactor);
 
@@ -378,9 +384,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private List<Suborder> splitOrders(List<Order> orders, Date startTime, boolean urgent) {
+        Map<String, List<Suborder>> suborderMap = new HashMap<>();
         // 划分子订单
         List<Suborder> suborders = new ArrayList<>(orders.size());
         for (Order order : orders) {
+            suborderMap.put(order.getId(), new ArrayList<>());
             int suborderIndex = 0;
             int ddlTimeGrainIndex = (int) ((order.getDeadline().getTime() - startTime.getTime())
                     / millisecondCountPerHour / maxSuborderNeedTimeInHour);
@@ -388,23 +396,26 @@ public class ScheduleServiceImpl implements ScheduleService {
             while (remainTimeInHour > 0) {
                 suborders.add(Suborder.create(order, suborderIndex++, urgent,
                         Math.min(maxSuborderNeedTimeInHour, remainTimeInHour), ddlTimeGrainIndex));
+                suborderMap.get(order.getId()).add(suborders.get(suborders.size() - 1));
                 remainTimeInHour -= maxSuborderNeedTimeInHour;
             }
         }
+        for (Suborder suborder : suborders)
+            suborder.setPredecessors(suborderMap.get(suborder.getPredecessorOrderId()));
         return suborders;
     }
 
     // 根据Solution获取Dto
     private List<OrderProductionDto> getSolutionDto(SuborderSolution solution) {
-        HashSet<String> orderIdSet = new HashSet<>();
+        HashMap<String, String> orderIdMap = new HashMap<>();
         for (Suborder suborder : solution.getSuborders())
-            orderIdSet.add(suborder.getOrderId());
+            orderIdMap.put(suborder.getOrderId(), suborder.getPredecessorOrderId());
         List<OrderProductionDto> res = new ArrayList<>();
         HashMap<String, OrderProductionDto> orderProductionDtoMap = new HashMap<>();
-        for (String orderId : orderIdSet) {
-            OrderProductionDto dto = new OrderProductionDto(orderId, new ArrayList<>());
+        for (Entry<String, String> entry : orderIdMap.entrySet()) {
+            OrderProductionDto dto = new OrderProductionDto(entry.getKey(), entry.getValue(), new ArrayList<>());
             res.add(dto);
-            orderProductionDtoMap.put(orderId, dto);
+            orderProductionDtoMap.put(entry.getKey(), dto);
         }
 
         for (Suborder suborder : solution.getSuborders()) {
@@ -441,7 +452,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 suborderProductionPos.add(new SuborderProduction(null, dto.getId(), startTimestamp, endTimestamp,
                         dto.getManpowerIds(), dto.getDeviceId()));
             }
-            orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(), suborderProductionPos));
+            orderProductionPos.add(new OrderProduction(null, orderProductionDto.getId(),
+                    orderProductionDto.getPredecessorOrderId(), suborderProductionPos));
         }
         orderProductionRepository.deleteAll();
         orderProductionRepository.saveAll(orderProductionPos);

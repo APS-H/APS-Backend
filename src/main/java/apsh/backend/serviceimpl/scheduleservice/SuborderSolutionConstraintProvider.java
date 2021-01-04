@@ -19,7 +19,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return new Constraint[] { urgentOrderDelay(constraintFactory), manpowerNotAvailable(constraintFactory),
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
                 manpowerPeopleNotEnough(constraintFactory), manpowerConflict(constraintFactory),
-                deviceConflict(constraintFactory), softDelay(constraintFactory), softEarlyFinish(constraintFactory),
+                deviceConflict(constraintFactory), predecessorNotComplete(constraintFactory), softDelay(constraintFactory), softEarlyFinish(constraintFactory),
                 softDeviceLoadBalance(constraintFactory), softManpowerLoadBalance(constraintFactory) };
     }
 
@@ -70,6 +70,12 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 .penalize("Device conflict", HardSoftScore.ONE_HARD);
     }
 
+    private Constraint predecessorNotComplete(ConstraintFactory constraintFactory) {
+        // 测试、装配要有顺序
+        return constraintFactory.from(Suborder.class).penalize("Suborder predecessor not complete",
+                HardSoftScore.ONE_HARD, Suborder::predecessorNotComplete);
+    }
+
     private Constraint softDelay(ConstraintFactory constraintFactory) {
         return constraintFactory.from(Suborder.class).filter(Suborder::delay).penalize("Soft delay",
                 HardSoftScore.ONE_SOFT);
@@ -83,7 +89,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
     private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
         // 设备利用率尽可能高
-        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).penalize(
+        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).reward(
                 "Soft device load balance", HardSoftScore.ONE_SOFT,
                 DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
     }
@@ -154,7 +160,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         }
 
         public int getZeroDeviationSquaredSumRoot() {
-            return -(int) (Math.sqrt((double) squaredSum));
+            return (int) (Math.sqrt((double) squaredSum));
         }
     }
 

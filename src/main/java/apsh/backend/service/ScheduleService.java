@@ -15,7 +15,7 @@ import apsh.backend.vo.ScheduleProductionTableProductionVo;
 public interface ScheduleService {
     default void arrangeInitialOrders(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
             List<OrderDto> orderDtos, Date startTime) {
-        arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime, 1.0);
+        arrangeInitialOrders(manpowerDtos, deviceDtos, orderDtos, startTime, 2.0);
     }
 
     /**
@@ -26,7 +26,7 @@ public interface ScheduleService {
 
     default void arrangeUrgentOrder(List<ManpowerDto> manpowerDtos, List<DeviceDto> deviceDtos,
             List<OrderDto> orderDtos, OrderDto urgentOrderDto, Date insertTime, Date startTime) {
-        arrangeUrgentOrder(manpowerDtos, deviceDtos, orderDtos, urgentOrderDto, insertTime, startTime, 1.0);
+        arrangeUrgentOrder(manpowerDtos, deviceDtos, orderDtos, urgentOrderDto, insertTime, startTime, 2.0);
     }
 
     /**

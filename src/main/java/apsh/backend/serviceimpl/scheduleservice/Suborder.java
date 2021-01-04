@@ -23,6 +23,8 @@ public class Suborder {
     @NonNull
     private String orderId;
     @NonNull
+    private String predecessorOrderId;
+    @NonNull
     private Boolean urgent;
     @NonNull
     private Integer needTimeInHour;
@@ -34,6 +36,8 @@ public class Suborder {
     private HashSet<String> availableDeviceTypeIdSet;
     @NonNull
     private Integer deadlineTimeGrainIndex;
+
+    private List<Suborder> predecessors;
 
     @PlanningVariable(valueRangeProviderRefs = "manpowerCombinationRange")
     private ManpowerCombination manpowerCombination;
@@ -75,7 +79,7 @@ public class Suborder {
             return false;
         if (manpowerCombination == null)
             return false;
-        return manpowerCombination.canWork(timeGrain.getHourOfDay(), needTimeInHour);
+        return !manpowerCombination.canWork(timeGrain.getHourOfDay(), needTimeInHour);
     }
 
     // 设备不可用
@@ -83,6 +87,18 @@ public class Suborder {
         if (device == null)
             return false;
         return !availableDeviceTypeIdSet.contains(device.getDeviceTypeId());
+    }
+
+    // 前驱任务必须安排在之前
+    public int predecessorNotComplete() {
+        if (predecessors == null)
+            return 0;
+        int count = 0;
+        for (Suborder suborder : predecessors) {
+            if (suborder.timeGrain != null && timeGrain != null && suborder.timeGrain.getIndex() > timeGrain.getIndex())
+                count++;
+        }
+        return count;
     }
 
     // 两个订单使用了相同的人力资源
@@ -96,8 +112,8 @@ public class Suborder {
 
     public static Suborder create(Order order, int index, boolean urgent, int needTimeInHour,
             int deadlineTimeGrainIndex) {
-        return new Suborder(order.getId() + " " + index, order.getId(), urgent, needTimeInHour,
-                order.getNeedPeopleCount(), order.getAvailableManpowerIdSet(), order.getAvailableDeviceTypeIdSet(),
-                deadlineTimeGrainIndex);
+        return new Suborder(order.getId() + " " + index, order.getId(), order.getPredecessorOrderId(), urgent,
+                needTimeInHour, order.getNeedPeopleCount(), order.getAvailableManpowerIdSet(),
+                order.getAvailableDeviceTypeIdSet(), deadlineTimeGrainIndex);
     }
 }
