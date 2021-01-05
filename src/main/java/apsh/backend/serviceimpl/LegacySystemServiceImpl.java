@@ -99,15 +99,10 @@ public class LegacySystemServiceImpl implements LegacySystemService {
             Field fieldName = resources.get(0).getClass().getDeclaredField("name");
             fieldName.setAccessible(true);
 
-
             for (Object o : resources) {
                 if (fieldName.get(o).equals("线体") || fieldName.get(o).equals("设备")) {
-
-
                         Equipment equipment = new Equipment(o);
                         allEquipments.add(equipment);
-
-
                 }
             }
             return allEquipments;

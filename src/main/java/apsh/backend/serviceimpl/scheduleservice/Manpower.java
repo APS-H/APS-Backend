@@ -16,37 +16,25 @@ public class Manpower {
     @NonNull
     private Integer peopleCount;
     @NonNull
-    private List<TimeSection> workSections;
+    private TimeSection workSection;
 
-    // TODO: 早班晚班特判
-    public boolean canWork(int startHourOfDay) {
-        boolean day = workSections.size() == 1;
-        boolean canWorkInDay = 7 <= startHourOfDay && startHourOfDay < 19;
-        return day ? canWorkInDay : !canWorkInDay;
+    public boolean canWorkWith(Manpower other) {
+        return workSection.equals(other.workSection);
     }
 
-    // public boolean canWork(int startHourOfDay, int workTimeInHour) {
-    //     while (startHourOfDay + workTimeInHour > 24) {
-    //         TimeSection section = new TimeSection(startHourOfDay, 24);
-    //         if (!canWork(section))
-    //             return false;
-    //         workTimeInHour -= 24 - startHourOfDay;
-    //         startHourOfDay = 0;
-    //     }
-    //     if (workTimeInHour == 0)
-    //         return true;
-    //     return canWork(new TimeSection(startHourOfDay, startHourOfDay + workTimeInHour));
-    // }
-
-    // public boolean canWork(TimeSection section) {
-    //     for (TimeSection workSection : workSections)
-    //         if (workSection.cover(section))
-    //             return true;
-    //     return false;
-    // }
+    public boolean canWork(int startHourOfDay, int workTimeInHour) {
+        if (workSection.getStart() <= startHourOfDay
+                && startHourOfDay + workTimeInHour <= workSection.getStart() + workSection.getLastTime())
+            return true;
+        startHourOfDay += 24;
+        if (workSection.getStart() <= startHourOfDay
+                && startHourOfDay + workTimeInHour <= workSection.getStart() + workSection.getLastTime())
+            return true;
+        return false;
+    }
 
     @Override
     public String toString() {
-        return "{ " + id.toString() + ", " + peopleCount.toString() + ", " + workSections.toString() + " }";
+        return "{ " + id.toString() + ", " + peopleCount.toString() + ", " + workSection.toString() + " }";
     }
 }

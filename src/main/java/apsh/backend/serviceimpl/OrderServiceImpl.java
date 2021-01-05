@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,8 +42,8 @@ public class OrderServiceImpl implements OrderService, GodService {
 
     @Autowired
     public OrderServiceImpl(ScheduleService scheduleService, HumanService humanService,
-            EquipmentService equipmentService, TimeService timeService, LegacySystemService legacySystemService,
-            OrderRepository orderRepository, OrderProductionRepository orderProductionRepository) {
+                            EquipmentService equipmentService, TimeService timeService, LegacySystemService legacySystemService,
+                            OrderRepository orderRepository, OrderProductionRepository orderProductionRepository) {
         this.scheduleService = scheduleService;
         this.humanService = humanService;
         this.equipmentService = equipmentService;
@@ -66,17 +67,19 @@ public class OrderServiceImpl implements OrderService, GodService {
             }
             Instant deliveryDate = new Date(o.getDeliveryDate().getTime()).toInstant();
             Instant orderEndTime = orderStatusList.get(o.getId());
-            if (deliveryDate.isAfter(orderEndTime)) { // 交付时间 晚于 订单完成时间
-                if (orderEndTime.isBefore(now)) { // 订单完成时间 早于 当前时间
-                    customerOrderDto.setState(OrderStatus.DELIVERED_ON_TIME);
-                } else {
-                    customerOrderDto.setState(OrderStatus.ON_GOING);
-                }
-            } else { // 交付时间 早于 订单完成时间
-                if (orderEndTime.isBefore(now)) { // 订单完成时间 早于 当前时间
-                    customerOrderDto.setState(OrderStatus.DELAY_PRODUCTION);
-                } else {
-                    customerOrderDto.setState(OrderStatus.DELIVERED_DELAY);
+            if (orderEndTime != null) {
+                if (deliveryDate.isAfter(orderEndTime)) { // 交付时间 晚于 订单完成时间
+                    if (orderEndTime.isBefore(now)) { // 订单完成时间 早于 当前时间
+                        customerOrderDto.setState(OrderStatus.DELIVERED_ON_TIME);
+                    } else {
+                        customerOrderDto.setState(OrderStatus.ON_GOING);
+                    }
+                } else { // 交付时间 早于 订单完成时间
+                    if (orderEndTime.isBefore(now)) { // 订单完成时间 早于 当前时间
+                        customerOrderDto.setState(OrderStatus.DELAY_PRODUCTION);
+                    } else {
+                        customerOrderDto.setState(OrderStatus.DELIVERED_DELAY);
+                    }
                 }
             }
             return customerOrderDto;
@@ -91,7 +94,7 @@ public class OrderServiceImpl implements OrderService, GodService {
                 .collect(Collectors.toMap(op -> Integer.parseInt(op.getOrderId()), op -> {
                     assert op.getSuborderProductions() != null && op.getSuborderProductions().size() != 0;
                     return op.getSuborderProductions().parallelStream().map(SuborderProduction::getEndTime)
-                            .map(timestamp -> timestamp.toInstant()).min(Comparator.naturalOrder()).get();
+                            .map(Timestamp::toInstant).min(Comparator.naturalOrder()).get();
                 }));
     }
 
