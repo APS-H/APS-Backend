@@ -79,7 +79,6 @@ public class OrderController {
                                             @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
         logger.infoControllerRequest("GET", "/progress/all", "pageSize=" + pageSize + ", pageNum=" + pageNum);
         OrderProgressVo orderProgressVo=orderService.getOrderProgress(date);
-        System.out.println("reach");
         orderProgressVo.page(pageSize,pageNum);
         logger.infoControllerResponse("GET", "/progress/all", orderProgressVo);
         return orderProgressVo;

@@ -128,6 +128,8 @@ public class OrderServiceImpl implements OrderService, GodService {
         progress=progress.stream().filter(o->{
            return o==null? false:true;
         }).collect(Collectors.toList());
+
+
         OptionalDouble totalrate;
         if (progress.size() > 0) {
             totalrate = progress.stream().mapToDouble(o -> o.getAssembleRate()).average();

@@ -74,6 +74,7 @@ public class OrderProduction {
         Double rate = ((double) work) / total;
 
         OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, 1.0, (deliveryDate.compareTo(EndDate)<0));
+
         return OIPVO;
 
     }
