@@ -1,10 +1,16 @@
 package apsh.backend.serviceimpl.scheduleservice;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
+
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.stream.Constraint;
 import org.optaplanner.core.api.score.stream.ConstraintFactory;
 import org.optaplanner.core.api.score.stream.ConstraintProvider;
 import org.optaplanner.core.api.score.stream.Joiners;
+import org.optaplanner.core.impl.score.stream.uni.DefaultUniConstraintCollector;
 
 public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
@@ -13,7 +19,9 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return new Constraint[] { urgentOrderDelay(constraintFactory), manpowerNotAvailable(constraintFactory),
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
                 manpowerOverlap(constraintFactory), manpowerPeopleNotEnough(constraintFactory),
-                manpowerConflict(constraintFactory), deviceConflict(constraintFactory), softDelay(constraintFactory) };
+                manpowerConflict(constraintFactory), deviceConflict(constraintFactory), softDelay(constraintFactory),
+                softEarlyFinish(constraintFactory), softDeviceLoadBalance(constraintFactory),
+                softManpowerLoadBalance(constraintFactory) };
     }
 
     private Constraint urgentOrderDelay(ConstraintFactory constraintFactory) {
@@ -40,11 +48,13 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 Suborder::manpowerOverlapCount);
     }
 
-    private Constraint manpowerCannotWorkTogether(ConstraintFactory constraintFactory) {
-        // 同组内的人力资源工作时间不相同 不能同时工作 用于加速搜索
-        return constraintFactory.from(Suborder.class).filter(Suborder::manpowerCannotWorkTogether)
-                .penalize("Manpower can not work together", HardSoftScore.ONE_HARD);
-    }
+    // private Constraint manpowerCannotWorkTogether(ConstraintFactory
+    // constraintFactory) {
+    // // TODO: 同组内的人力资源工作时间不相同 不能同时工作 用于加速搜索
+    // return
+    // constraintFactory.from(Suborder.class).filter(Suborder::manpowerCannotWorkTogether)
+    // .penalize("Manpower can not work together", HardSoftScore.ONE_HARD);
+    // }
 
     private Constraint manpowerWorkTimeNotAvailable(ConstraintFactory constraintFactory) {
         // 人力资源在时间内不可工作
@@ -77,5 +87,129 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
     private Constraint softDelay(ConstraintFactory constraintFactory) {
         return constraintFactory.from(Suborder.class).filter(Suborder::delay).penalize("Soft delay",
                 HardSoftScore.ONE_SOFT);
+    }
+
+    private Constraint softEarlyFinish(ConstraintFactory constraintFactory) {
+        // 尽早结束
+        return constraintFactory.from(Suborder.class).groupBy(earlyFinish(Suborder::getTimeGrain))
+                .penalize("Soft early finish", HardSoftScore.ONE_SOFT, EarlyFinishData::getLatestDdlTimeGrainIndex);
+    }
+
+    private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
+        // 设备负载均衡
+        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).penalize(
+                "Soft device load balance", HardSoftScore.ONE_SOFT, DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
+    }
+
+    private Constraint softManpowerLoadBalance(ConstraintFactory constraintFactory) {
+        // 员工负载均衡
+        // TODO: 测试
+        return constraintFactory.from(Suborder.class)
+                .groupBy(manpowerLoadBalance(Suborder::getManpowerA, Suborder::getManpowerB, Suborder::getManpowerC))
+                .penalize("Soft manpower load balance", HardSoftScore.ONE_SOFT,
+                        ManpowerLoadBalanceData::getZeroDeviationSquaredSumRoot);
+    }
+
+    private static DefaultUniConstraintCollector<Suborder, ?, EarlyFinishData> earlyFinish(
+            Function<Suborder, TimeGrain> getTimeGrain) {
+        return new DefaultUniConstraintCollector<>(EarlyFinishData::new, (resultContainer, suborder) -> {
+            TimeGrain timeGrain = getTimeGrain.apply(suborder);
+            return resultContainer.apply(timeGrain);
+        }, resultContainer -> resultContainer);
+    }
+
+    private static DefaultUniConstraintCollector<Suborder, ?, DeviceLoadBalanceData> deviceLoadBalance(
+            Function<Suborder, Device> getDevice) {
+        return new DefaultUniConstraintCollector<>(DeviceLoadBalanceData::new, (resultContainer, suborder) -> {
+            Device dev = getDevice.apply(suborder);
+            return resultContainer.apply(dev);
+        }, resultContainer -> resultContainer);
+    }
+
+    private static DefaultUniConstraintCollector<Suborder, ?, ManpowerLoadBalanceData> manpowerLoadBalance(
+            Function<Suborder, Manpower> aKeyGet, Function<Suborder, Manpower> bKeyGet,
+            Function<Suborder, Manpower> cKeyGet) {
+        return new DefaultUniConstraintCollector<>(ManpowerLoadBalanceData::new, (resultContainer, suborder) -> {
+            Manpower a = aKeyGet.apply(suborder);
+            Manpower b = bKeyGet.apply(suborder);
+            Manpower c = cKeyGet.apply(suborder);
+            return resultContainer.apply(a, b, c);
+        }, resultContainer -> resultContainer);
+    }
+
+    private static final class EarlyFinishData {
+        private final TreeMap<Integer, Integer> ddlCountMap = new TreeMap<>();
+
+        private Runnable apply(TimeGrain timeGrain) {
+            if (timeGrain != null)
+                ddlCountMap.compute(timeGrain.getIndex(), (key, value) -> (value == null) ? 1 : value + 1);
+            return () -> {
+                if (timeGrain != null)
+                    ddlCountMap.compute(timeGrain.getIndex(), (key, value) -> (value == 1) ? null : value - 1);
+            };
+        }
+
+        public int getLatestDdlTimeGrainIndex() {
+            return ddlCountMap.isEmpty() ? 0 : ddlCountMap.lastKey();
+        }
+    }
+
+    private static final class DeviceLoadBalanceData {
+        private final Map<String, Integer> countMap = new LinkedHashMap<>();
+        private long squaredSum = 0L;
+
+        private Runnable apply(Device dev) {
+            if (dev != null) {
+                long count = countMap.compute(dev.getId(), (key, value) -> (value == null) ? 1 : value + 1);
+                squaredSum += 2 * count - 1;
+            }
+            return () -> {
+                if (dev != null) {
+                    Integer count = countMap.compute(dev.getId(), (key, value) -> (value == 1) ? null : value - 1);
+                    squaredSum -= count == null ? 1 : (2L * count + 1L);
+                }
+            };
+        }
+
+        public int getZeroDeviationSquaredSumRoot() {
+            return (int) (Math.sqrt((double) squaredSum));
+        }
+    }
+
+    private static final class ManpowerLoadBalanceData {
+        private final Map<String, Long> countMap = new LinkedHashMap<>();
+        private long squaredSum = 0L;
+
+        private Runnable apply(Manpower a, Manpower b, Manpower c) {
+            long deltaA = 0;
+            if (a != null)
+                deltaA += -1 + 2 * countMap.compute(a.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+            if (b != null)
+                deltaA += -1 + 2 * countMap.compute(b.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+            if (c != null)
+                deltaA += -1 + 2 * countMap.compute(c.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+            squaredSum += deltaA;
+            return () -> {
+                long deltaB = 0;
+                if (a != null)
+                    deltaB += 1 + 2
+                            * nullToZero(countMap.compute(a.getId(), (key, value) -> (value == 1) ? null : value - 1L));
+                if (b != null)
+                    deltaB += 1 + 2
+                            * nullToZero(countMap.compute(b.getId(), (key, value) -> (value == 1) ? null : value - 1L));
+                if (c != null)
+                    deltaB += 1 + 2
+                            * nullToZero(countMap.compute(c.getId(), (key, value) -> (value == 1) ? null : value - 1L));
+                squaredSum -= deltaB;
+            };
+        }
+
+        private long nullToZero(Long num) {
+            return num == null ? 0L : num;
+        }
+
+        public int getZeroDeviationSquaredSumRoot() {
+            return (int) (Math.sqrt((double) squaredSum));
+        }
     }
 }

@@ -220,6 +220,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             try {
                 solution = currentSolverJob.getFinalBestSolution();
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new RuntimeException("排程失败 原因未知");
             }
             System.out.println(solution.getScore());
@@ -244,6 +245,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         try {
             solution = currentSolverJob.getFinalBestSolution();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("排程失败 原因未知");
         }
         System.out.println(solution.getScore());
