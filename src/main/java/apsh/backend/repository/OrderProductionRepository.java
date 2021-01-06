@@ -7,7 +7,4 @@ import apsh.backend.po.OrderProduction;
 
 @Repository
 public interface OrderProductionRepository extends JpaRepository<OrderProduction, Integer> {
-
-
-
 }

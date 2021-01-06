@@ -27,10 +27,12 @@ public class Order {
     private HashSet<String> availableManpowerIdSet;
     @NonNull
     private HashSet<String> availableDeviceTypeIdSet;
+    private String predecessorOrderId;
 
     public static Order fromDto(OrderDto dto) {
         return new Order(dto.getId(), dto.getUrgent(), dto.getNeedTimeInHour(), dto.getNeedPeopleCount(),
                 dto.getDeadline(), new HashSet<>(dto.getAvailableManpowerIdList()),
-                new HashSet<>(dto.getAvailableDeviceTypeIdList()));
+                new HashSet<>(dto.getAvailableDeviceTypeIdList()),
+                dto.getPredeceesorOrderId() == null ? "" : dto.getPredeceesorOrderId());
     }
 }

@@ -12,14 +12,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-import javax.persistence.criteria.CriteriaBuilder;
 
-import apsh.backend.serviceimpl.scheduleservice.Suborder;
 import apsh.backend.vo.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.time.DateUtils;
 
 @Data
 @AllArgsConstructor
@@ -33,6 +30,9 @@ public class OrderProduction {
 
     @Column(name = "order_id")
     private String orderId;
+
+    @Column(name = "predecessor_order_id")
+    private String predecessorOrderId;
 
     @JoinColumn(name = "order_production_id")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -61,9 +61,9 @@ public class OrderProduction {
                 return -1;
             }
         }).collect(Collectors.toList());
+
         Date EndDate = new Date(origin.get(origin.size()-1).getEndTime().getTime());
-        long total = origin.stream().map(SuborderProduction::getWorkTime).collect(Collectors.toList()).stream()
-                .mapToLong(o -> o).sum();
+        long total = origin.stream().mapToLong(SuborderProduction::getWorkTime).sum();
 
         long work = origin.stream().filter(s -> {
             // Date date1 = new Date(s.getStartTime().getTime());
@@ -72,10 +72,15 @@ public class OrderProduction {
         }).collect(Collectors.toList()).stream().mapToLong(o -> o.getWorkTime()).sum();
 
         Double rate = ((double) work) / total;
+        if(predecessorOrderId!=null) {
+            OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, -1.0, (deliveryDate.compareTo(EndDate) < 0));
+            return OIPVO;
+        }
+        else{
+            OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), -1.0, rate, (deliveryDate.compareTo(EndDate) < 0));
+            return OIPVO;
+        }
 
-        OrderInOrderProgressVo OIPVO = new OrderInOrderProgressVo(String.valueOf(id), rate, 1.0, (deliveryDate.compareTo(EndDate)<0));
-
-        return OIPVO;
 
     }
 
