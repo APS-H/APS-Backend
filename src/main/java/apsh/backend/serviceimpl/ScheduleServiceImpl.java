@@ -197,6 +197,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 }
             }
 
+        // TODO: 紧急订单分阶段比较麻烦
         for (Suborder suborder : dirtySuborders)
             suborder.setPredecessors(dirtySuborderMap.get(suborder.getPredecessorOrderId()));
 
