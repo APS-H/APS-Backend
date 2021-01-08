@@ -91,7 +91,7 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
 
     private Constraint softSelfEarlyFinish(ConstraintFactory constraintFactory) {
         // 个体尽早结束
-        return constraintFactory.from(Suborder.class).penalize("Soft self early finish", HardSoftScore.ONE_SOFT,
+        return constraintFactory.from(Suborder.class).reward("Soft self early finish", HardSoftScore.ONE_SOFT,
                 Suborder::earlyFinishDay);
     }
 
