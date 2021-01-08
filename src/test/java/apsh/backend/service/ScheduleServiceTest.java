@@ -354,12 +354,12 @@ public class ScheduleServiceTest {
         List<OrderDto> orderDtos = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         Date startTime = dateFormat.parse("2021-1-9 7");
-        orderDtos.add(new OrderDto("order1", false, 90, 7, dateFormat.parse("2021-06-02 09"),
+        orderDtos.add(new OrderDto("order1", false, 72, 7, dateFormat.parse("2021-06-02 09"),
                 Arrays.asList("man1", "man2", "man3", "man7", "man8", "man9", "13", "14", "15"),
                 Arrays.asList("line1", "line2"), null));
-        orderDtos.add(new OrderDto("order2", false, 96, 8, dateFormat.parse("2021-07-21 12"),
+        orderDtos.add(new OrderDto("order2", false, 48, 8, dateFormat.parse("2021-07-21 12"),
                 Arrays.asList("man1", "man2", "man3", "man4", "man5", "man6"), Arrays.asList("line2", "line3"), null));
-        orderDtos.add(new OrderDto("order3", false, 120, 6, dateFormat.parse("2021-08-29 14"),
+        orderDtos.add(new OrderDto("order3", false, 60, 6, dateFormat.parse("2021-08-29 14"),
                 Arrays.asList("man4", "man5", "man6", "man10", "man11", "man12"), Arrays.asList("line3", "line4"),
                 null));
         orderDtos.add(new OrderDto("order4", false, 48, 8, dateFormat.parse("2021-05-01 14"),
