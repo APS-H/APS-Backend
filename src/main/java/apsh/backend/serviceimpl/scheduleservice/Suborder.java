@@ -101,6 +101,12 @@ public class Suborder {
         return count;
     }
 
+    public int earlyFinishDay() {
+        if (timeGrain == null)
+            return 0;
+        return Math.max(deadlineTimeGrainIndex - timeGrain.getIndex(), 0);
+    }
+
     // 两个订单使用了相同的人力资源
     public boolean manpowerCross(Suborder other) {
         return manpowerCombination.cross(other.manpowerCombination);
