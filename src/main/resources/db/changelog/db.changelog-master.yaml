@@ -162,6 +162,9 @@ databaseChangeLog:
                   type: varchar(20)
                   constraints:
                     nullable: false
+              - column:
+                  name: predecessor_order_id
+                  type: varchar(20)
         # 子订单生产排程表
         - createTable:
             tableName: suborder_production
