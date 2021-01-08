@@ -18,10 +18,9 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
     public Constraint[] defineConstraints(ConstraintFactory constraintFactory) {
         return new Constraint[] { urgentOrderDelay(constraintFactory), manpowerNotAvailable(constraintFactory),
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
-                manpowerOverlap(constraintFactory), manpowerPeopleNotEnough(constraintFactory),
-                manpowerConflict(constraintFactory), deviceConflict(constraintFactory), softDelay(constraintFactory),
-                softEarlyFinish(constraintFactory), softDeviceLoadBalance(constraintFactory),
-                softManpowerLoadBalance(constraintFactory) };
+                manpowerPeopleNotEnough(constraintFactory), manpowerConflict(constraintFactory),
+                deviceConflict(constraintFactory), predecessorNotComplete(constraintFactory), softDelay(constraintFactory), softEarlyFinish(constraintFactory),
+                softDeviceLoadBalance(constraintFactory), softManpowerLoadBalance(constraintFactory) };
     }
 
     private Constraint urgentOrderDelay(ConstraintFactory constraintFactory) {
@@ -42,24 +41,10 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 .penalize("Device not available", HardSoftScore.ONE_HARD);
     }
 
-    private Constraint manpowerOverlap(ConstraintFactory constraintFactory) {
-        // 人力资源重复使用
-        return constraintFactory.from(Suborder.class).penalize("Manpower overlap", HardSoftScore.ONE_HARD,
-                Suborder::manpowerOverlapCount);
-    }
-
-    // private Constraint manpowerCannotWorkTogether(ConstraintFactory
-    // constraintFactory) {
-    // // TODO: 同组内的人力资源工作时间不相同 不能同时工作 用于加速搜索
-    // return
-    // constraintFactory.from(Suborder.class).filter(Suborder::manpowerCannotWorkTogether)
-    // .penalize("Manpower can not work together", HardSoftScore.ONE_HARD);
-    // }
-
     private Constraint manpowerWorkTimeNotAvailable(ConstraintFactory constraintFactory) {
         // 人力资源在时间内不可工作
-        return constraintFactory.from(Suborder.class).penalize("Manpower can not work", HardSoftScore.ONE_HARD,
-                Suborder::manpowerCannotWorkCount);
+        return constraintFactory.from(Suborder.class).filter(Suborder::manpowerCannotWork)
+                .penalize("Manpower can not work", HardSoftScore.ONE_HARD);
     }
 
     private Constraint manpowerPeopleNotEnough(ConstraintFactory constraintFactory) {
@@ -72,8 +57,9 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
     private Constraint manpowerConflict(ConstraintFactory constraintFactory) {
         // 同一时间段内人力冲突
         return constraintFactory.from(Suborder.class)
-                .join(Suborder.class, Joiners.lessThan(Suborder::getId), Joiners.equal(Suborder::getTimeGrain))
-                .penalize("Manpower conflict", HardSoftScore.ONE_HARD, Suborder::manpowerCrossCount);
+                .join(Suborder.class, Joiners.lessThan(Suborder::getId), Joiners.equal(Suborder::getTimeGrain),
+                        Joiners.filtering(Suborder::manpowerCross))
+                .penalize("Manpower conflict", HardSoftScore.ONE_HARD);
     }
 
     private Constraint deviceConflict(ConstraintFactory constraintFactory) {
@@ -82,6 +68,12 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 .from(Suborder.class).join(Suborder.class, Joiners.lessThan(Suborder::getId),
                         Joiners.equal(Suborder::getDevice), Joiners.equal(Suborder::getTimeGrain))
                 .penalize("Device conflict", HardSoftScore.ONE_HARD);
+    }
+
+    private Constraint predecessorNotComplete(ConstraintFactory constraintFactory) {
+        // 测试、装配要有顺序
+        return constraintFactory.from(Suborder.class).penalize("Suborder predecessor not complete",
+                HardSoftScore.ONE_HARD, Suborder::predecessorNotComplete);
     }
 
     private Constraint softDelay(ConstraintFactory constraintFactory) {
@@ -96,16 +88,15 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
     }
 
     private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
-        // 设备负载均衡
-        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).penalize(
-                "Soft device load balance", HardSoftScore.ONE_SOFT, DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
+        // 设备利用率尽可能高
+        return constraintFactory.from(Suborder.class).groupBy(deviceLoadBalance(Suborder::getDevice)).reward(
+                "Soft device load balance", HardSoftScore.ONE_SOFT,
+                DeviceLoadBalanceData::getZeroDeviationSquaredSumRoot);
     }
 
     private Constraint softManpowerLoadBalance(ConstraintFactory constraintFactory) {
         // 员工负载均衡
-        // TODO: 测试
-        return constraintFactory.from(Suborder.class)
-                .groupBy(manpowerLoadBalance(Suborder::getManpowerA, Suborder::getManpowerB, Suborder::getManpowerC))
+        return constraintFactory.from(Suborder.class).groupBy(manpowerLoadBalance(Suborder::getManpowerCombination))
                 .penalize("Soft manpower load balance", HardSoftScore.ONE_SOFT,
                         ManpowerLoadBalanceData::getZeroDeviationSquaredSumRoot);
     }
@@ -127,13 +118,10 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
     }
 
     private static DefaultUniConstraintCollector<Suborder, ?, ManpowerLoadBalanceData> manpowerLoadBalance(
-            Function<Suborder, Manpower> aKeyGet, Function<Suborder, Manpower> bKeyGet,
-            Function<Suborder, Manpower> cKeyGet) {
+            Function<Suborder, ManpowerCombination> keyGet) {
         return new DefaultUniConstraintCollector<>(ManpowerLoadBalanceData::new, (resultContainer, suborder) -> {
-            Manpower a = aKeyGet.apply(suborder);
-            Manpower b = bKeyGet.apply(suborder);
-            Manpower c = cKeyGet.apply(suborder);
-            return resultContainer.apply(a, b, c);
+            ManpowerCombination combination = keyGet.apply(suborder);
+            return resultContainer.apply(combination);
         }, resultContainer -> resultContainer);
     }
 
@@ -180,14 +168,17 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         private final Map<String, Long> countMap = new LinkedHashMap<>();
         private long squaredSum = 0L;
 
-        private Runnable apply(Manpower a, Manpower b, Manpower c) {
+        private Runnable apply(ManpowerCombination combination) {
+            Manpower a = combination.getA();
+            Manpower b = combination.getB();
             long deltaA = 0;
             if (a != null)
                 deltaA += -1 + 2 * countMap.compute(a.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
             if (b != null)
                 deltaA += -1 + 2 * countMap.compute(b.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
-            if (c != null)
-                deltaA += -1 + 2 * countMap.compute(c.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+            // if (c != null)
+            // deltaA += -1 + 2 * countMap.compute(c.getId(), (key, value) -> (value ==
+            // null) ? 1L : value + 1L);
             squaredSum += deltaA;
             return () -> {
                 long deltaB = 0;
@@ -197,9 +188,10 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 if (b != null)
                     deltaB += 1 + 2
                             * nullToZero(countMap.compute(b.getId(), (key, value) -> (value == 1) ? null : value - 1L));
-                if (c != null)
-                    deltaB += 1 + 2
-                            * nullToZero(countMap.compute(c.getId(), (key, value) -> (value == 1) ? null : value - 1L));
+                // if (c != null)
+                // deltaB += 1 + 2
+                // * nullToZero(countMap.compute(c.getId(), (key, value) -> (value == 1) ? null
+                // : value - 1L));
                 squaredSum -= deltaB;
             };
         }

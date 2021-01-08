@@ -26,9 +26,9 @@ public class SuborderSolution {
     private List<Suborder> fixedSuborders;
 
     @NonNull
-    @ValueRangeProvider(id = "manpowerRange")
+    @ValueRangeProvider(id = "manpowerCombinationRange")
     @ProblemFactCollectionProperty
-    private List<Manpower> manpowers;
+    private List<ManpowerCombination> manpowerCombinations;
 
     @NonNull
     @ValueRangeProvider(id = "deviceRange")

@@ -13,6 +13,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderProductionDto {
+    /**
+     * 订单id
+     */
     private String id;
+    /**
+     * 前驱订单的id
+     */
+    private String predecessorOrderId;
     private List<SuborderProductionDto> suborders;
 }

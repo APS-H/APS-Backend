@@ -3,7 +3,7 @@ PUT {{hostAndPort}}/system-time/
 Content-Type: application/json
 
 {
-  "startTime": "2017-06-11 12:00",
+  "startTime": "2018-06-11 12:00",
   "flowFactor": 2.0,
   "startSchedule": false
 }
