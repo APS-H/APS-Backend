@@ -19,8 +19,10 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
         return new Constraint[] { urgentOrderDelay(constraintFactory), manpowerNotAvailable(constraintFactory),
                 manpowerWorkTimeNotAvailable(constraintFactory), deviceNotAvailable(constraintFactory),
                 manpowerPeopleNotEnough(constraintFactory), manpowerConflict(constraintFactory),
-                deviceConflict(constraintFactory), predecessorNotComplete(constraintFactory), softDelay(constraintFactory), softEarlyFinish(constraintFactory),
-                softDeviceLoadBalance(constraintFactory), softManpowerLoadBalance(constraintFactory) };
+                deviceConflict(constraintFactory), predecessorNotComplete(constraintFactory),
+                softDelay(constraintFactory), softTotalEarlyFinish(constraintFactory),
+                softSelfEarlyFinish(constraintFactory), softDeviceLoadBalance(constraintFactory),
+                softManpowerLoadBalance(constraintFactory) };
     }
 
     private Constraint urgentOrderDelay(ConstraintFactory constraintFactory) {
@@ -81,10 +83,16 @@ public class SuborderSolutionConstraintProvider implements ConstraintProvider {
                 HardSoftScore.ONE_SOFT);
     }
 
-    private Constraint softEarlyFinish(ConstraintFactory constraintFactory) {
-        // 尽早结束
-        return constraintFactory.from(Suborder.class).groupBy(earlyFinish(Suborder::getTimeGrain))
-                .penalize("Soft early finish", HardSoftScore.ONE_SOFT, EarlyFinishData::getLatestDdlTimeGrainIndex);
+    private Constraint softTotalEarlyFinish(ConstraintFactory constraintFactory) {
+        // 总体尽早结束
+        return constraintFactory.from(Suborder.class).groupBy(earlyFinish(Suborder::getTimeGrain)).penalize(
+                "Soft total early finish", HardSoftScore.ONE_SOFT, EarlyFinishData::getLatestDdlTimeGrainIndex);
+    }
+
+    private Constraint softSelfEarlyFinish(ConstraintFactory constraintFactory) {
+        // 个体尽早结束
+        return constraintFactory.from(Suborder.class).penalize("Soft self early finish", HardSoftScore.ONE_SOFT,
+                Suborder::earlyFinishDay);
     }
 
     private Constraint softDeviceLoadBalance(ConstraintFactory constraintFactory) {
